@@ -9,7 +9,7 @@ import os
 import rpm
 from libtaskotron import check
 
-log = logging.getLogger('python_versions_check')
+log = logging.getLogger('python-versions')
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
@@ -130,7 +130,7 @@ def run(koji_build, workdir='.', artifactsdir=None):
     else:
         detail.note = 'no problems found'
 
-    summary = 'python_versions_check {} for {} ({})'.format(
+    summary = 'python-versions {} for {} ({})'.format(
                   outcome, koji_build, detail.note)
     log.info(summary)
 
