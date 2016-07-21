@@ -1,0 +1,32 @@
+name: python-versions
+namespace: dist
+desc: download specified Koji build and check each RPM for Python dependencies
+maintainer: churchyard
+
+input:
+    args:
+        - koji_build
+
+environment:
+    rpm:
+        - rpm-python
+
+actions:
+    - name: download rpms from koji
+      koji:
+        action: download
+        koji_build: ${koji_build}
+        arch: ['all']
+        src: False
+
+    - name: check each rpm for python dependencies
+      python:
+          file: python_versions_check.py
+          callable: run
+          workdir: ${workdir}
+          koji_build: ${koji_build}
+      export: python_versions_output
+
+    - name: report results to resultsdb
+      resultsdb:
+          results: ${python_versions_output}

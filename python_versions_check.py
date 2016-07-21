@@ -84,7 +84,7 @@ def python_versions_check(path):
     return py_versions
 
 
-def run(koji_build, workdir='.', artifactsdir=None):
+def run(koji_build, workdir='.'):
     '''The main method to run from Taskotron'''
     workdir = os.path.abspath(workdir)
 
