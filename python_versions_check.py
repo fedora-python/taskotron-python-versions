@@ -99,7 +99,6 @@ def run(koji_build, workdir='.', artifactsdir=None):
             rpms.append(path)
         else:
             log.debug('Ignoring non-rpm file: {}'.format(path))
-            log.debug('Ignoring non-rpm file: %s', path)
 
     outcome = 'PASSED'
     bads = []
