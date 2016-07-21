@@ -93,9 +93,7 @@ def run(koji_build, workdir='.', artifactsdir=None):
     rpms = []
     for file_ in files:
         path = os.path.join(workdir, file_)
-        if file_.endswith('.src.rpm'):
-            log.debug('Ignoring srpm: {}'.format(path))
-        elif file_.endswith('.rpm'):
+        if file_.endswith('.rpm'):
             rpms.append(path)
         else:
             log.debug('Ignoring non-rpm file: {}'.format(path))
