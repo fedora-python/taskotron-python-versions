@@ -44,6 +44,11 @@ NAME_EXACTS = {
     )
 } 
 
+WHITELIST = (
+    'eric',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342492
+    'pungi',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342497
+)
+
 
 def python_versions_check(path):
     '''
@@ -53,7 +58,7 @@ def python_versions_check(path):
     ts = rpm.TransactionSet()
     with open(path, 'rb') as fdno:
         hdr = ts.hdrFromFdno(fdno)
-    
+
     py_versions = set()
 
     for nevr in hdr[rpm.RPMTAG_REQUIRENEVRS]:
@@ -81,7 +86,7 @@ def python_versions_check(path):
                     log.debug('Requires Python {}'.format(py_version))
                     py_versions.add(py_version)
 
-    return py_versions
+    return hdr[rpm.RPMTAG_NAME], py_versions
 
 
 def run(koji_build, workdir='.'):
@@ -105,8 +110,10 @@ def run(koji_build, workdir='.'):
         log.warn('No binary rpm files found in: {}'.format(workdir))
     for path in rpms:
         log.debug('Checking {}'.format(path))
-        py_versions = python_versions_check(path)
-        if len(py_versions) == 0:
+        name, py_versions = python_versions_check(path)
+        if name in WHITELIST:
+            log.warn('{} is excluded from this check'.format(name))
+        elif len(py_versions) == 0:
             log.info('{} does not require Python, that\'s OK'.format(path))
         elif len(py_versions) == 1:
             py_version = next(iter(py_versions))
