@@ -42,7 +42,7 @@ NAME_EXACTS = {
         b'/usr/bin/python',
         b'python',
     )
-} 
+}
 
 WHITELIST = (
     'eric',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342492
