@@ -120,21 +120,22 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     if not rpms:
         log.warn('No binary rpm files found in: {}'.format(workdir))
     for path in rpms:
-        log.debug('Checking {}'.format(path))
+        filename = os.path.basename(path)
+        log.debug('Checking {}'.format(filename))
         name, py_versions = python_versions_check(path)
         if name in WHITELIST:
             log.warn('{} is excluded from this check'.format(name))
         elif len(py_versions) == 0:
-            log.info('{} does not require Python, that\'s OK'.format(path))
+            log.info('{} does not require Python, that\'s OK'.format(filename))
         elif len(py_versions) == 1:
             py_version = next(iter(py_versions))
             log.info('{} requires Python {} only, that\'s OK'
-                     .format(path, py_version))
+                     .format(filename, py_version))
         else:
             log.error('{} requires both Python 2 and 3, that\'s usually bad.'
-                      .format(path))
+                      .format(filename))
             outcome = 'FAILED'
-            bads.append(path)
+            bads.append(filename)
 
     detail = check.CheckDetail(koji_build,
                                check.ReportType.KOJI_BUILD,
