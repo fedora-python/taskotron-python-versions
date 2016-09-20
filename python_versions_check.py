@@ -13,7 +13,8 @@ log = logging.getLogger('python-versions')
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
-LINK = 'http://python-rpm-porting.readthedocs.io/en/latest/applications.html#are-shebangs-dragging-you-down-to-python-2'
+LINK = ('https://python-rpm-porting.readthedocs.io/en/latest/applications.html'
+        '#are-shebangs-dragging-you-down-to-python-2')
 TEMPLATE = '''{} require{} both Pythons, i.e. Python 2 and 3.
 
 Read {} to find more information and possible cause.
@@ -135,7 +136,9 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
             outcome = 'FAILED'
             bads.append(path)
 
-    detail = check.CheckDetail(koji_build, check.ReportType.KOJI_BUILD, outcome)
+    detail = check.CheckDetail(koji_build,
+                               check.ReportType.KOJI_BUILD,
+                               outcome)
 
     if bads:
         s = 's' if len(bads) == 1 else ''
@@ -147,7 +150,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
         detail.note = 'no problems found'
 
     summary = 'python-versions {} for {} ({})'.format(
-                  outcome, koji_build, detail.note)
+              outcome, koji_build, detail.note)
     log.info(summary)
 
     output = check.export_YAML(detail)
