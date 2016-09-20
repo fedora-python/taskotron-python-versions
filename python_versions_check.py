@@ -146,7 +146,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
         detail.artifact = os.path.join(artifactsdir, 'output.log')
         with open(detail.artifact, 'w') as f:
             f.write(TEMPLATE.format(','.join(bads), s, LINK))
-        detail.note = '{} require{} Python 2 and 3'.format(','.join(bads), s)
+        detail.note = '{} require{} Python 2 and 3'.format(', '.join(bads), s)
     else:
         detail.note = 'no problems found'
 
