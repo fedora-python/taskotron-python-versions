@@ -73,7 +73,11 @@ def python_versions_check(path):
     '''
     ts = rpm.TransactionSet()
     with open(path, 'rb') as fdno:
-        hdr = ts.hdrFromFdno(fdno)
+        try:
+            hdr = ts.hdrFromFdno(fdno)
+        except rpm.error as e:
+            log.error('{}: {}'.format(os.path.basename(path), e))
+            return None, None
 
     py_versions = set()
 
@@ -128,7 +132,11 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
         filename = os.path.basename(path)
         log.debug('Checking {}'.format(filename))
         name, py_versions = python_versions_check(path)
-        if name in WHITELIST:
+        if name is None:
+            # RPM could not read that file, not our problem
+            # error is already logged
+            pass
+        elif name in WHITELIST:
             log.warn('{} is excluded from this check'.format(name))
         elif len(py_versions) == 0:
             log.info('{} does not require Python, that\'s OK'.format(filename))
