@@ -13,6 +13,16 @@ log = logging.getLogger('python-versions')
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
+LINK = 'http://python-rpm-porting.readthedocs.io/en/latest/applications.html#are-shebangs-dragging-you-down-to-python-2'
+TEMPLATE = '''{} require{} both Pythons, i.e. Python 2 and 3.
+
+Read {} to find more information and possible cause.
+Or ask at #fedora-python IRC channel for help.
+
+If you think the result is false or intentional, file a bug against TODO.
+'''
+
+
 NEVRS_STARTS = {
     2: (b'python(abi) = 2.',),
     3: (b'python(abi) = 3.',)
@@ -89,7 +99,7 @@ def python_versions_check(path):
     return hdr[rpm.RPMTAG_NAME], py_versions
 
 
-def run(koji_build, workdir='.'):
+def run(koji_build, workdir='.', artifactsdir='artifacts'):
     '''The main method to run from Taskotron'''
     workdir = os.path.abspath(workdir)
 
@@ -126,11 +136,13 @@ def run(koji_build, workdir='.'):
             bads.append(path)
 
     detail = check.CheckDetail(koji_build, check.ReportType.KOJI_BUILD, outcome)
+
     if bads:
-        s = 's' if len(bads) else ''
-        detail.note = ('{} require{} both Pythons, '
-                       'if you think that\'s false or intentional, '
-                       'file a bug against TODO'.format(','.join(bads), s))
+        s = 's' if len(bads) == 1 else ''
+        detail.artifact = os.path.join(artifactsdir, 'output.log')
+        with open(detail.artifact, 'w') as f:
+            f.write(TEMPLATE.format(','.join(bads), s, LINK))
+        detail.note = '{} require{} Python 2 and 3'.format(','.join(bads), s)
     else:
         detail.note = 'no problems found'
 

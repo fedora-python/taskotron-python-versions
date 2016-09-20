@@ -25,6 +25,7 @@ actions:
           callable: run
           workdir: ${workdir}
           koji_build: ${koji_build}
+          artifactsdir: ${artifactsdir}
       export: python_versions_output
 
     - name: report results to resultsdb
