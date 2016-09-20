@@ -55,6 +55,11 @@ NAME_EXACTS = {
     )
 }
 
+NAME_NOTS = (
+    b'python-rpm-macros',
+    b'python-srpm-macros',
+)
+
 WHITELIST = (
     'eric',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342492
     'pungi',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342497
@@ -85,7 +90,7 @@ def python_versions_check(path):
         for py_version, starts in NAME_STARTS.items():
             if py_version not in py_versions:
                 for start in starts:
-                    if name.startswith(start):
+                    if name.startswith(start) and name not in NAME_NOTS:
                         log.debug('Found dependency {}'.format(name.decode()))
                         log.debug('Requires Python {}'.format(py_version))
                         py_versions.add(py_version)
