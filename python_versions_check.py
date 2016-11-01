@@ -13,14 +13,18 @@ log = logging.getLogger('python-versions')
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.NullHandler())
 
-LINK = ('https://python-rpm-porting.readthedocs.io/en/latest/applications.html'
-        '#are-shebangs-dragging-you-down-to-python-2')
-TEMPLATE = '''{} require{} both Pythons, i.e. Python 2 and 3.
+INFO_URL = ('https://python-rpm-porting.readthedocs.io/en/latest/applications.html'
+            '#are-shebangs-dragging-you-down-to-python-2')
+BUG_URL = 'https://github.com/fedora-python/task-python-versions/issues'
+TEMPLATE = '''These RPMs require both Python 2 and Python 3:
+{rpms}
 
-Read {} to find more information and possible cause.
+Read the following document to find more information and a possible cause:
+{info_url}
 Or ask at #fedora-python IRC channel for help.
 
-If you think the result is false or intentional, file a bug against TODO.
+If you think the result is false or intentional, file a bug against:
+{bug_url}
 '''
 
 
@@ -155,16 +159,18 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
                                outcome)
 
     if bads:
-        s = 's' if len(bads) == 1 else ''
         detail.artifact = os.path.join(artifactsdir, 'output.log')
+        rpms = '\n'.join(bads)
         with open(detail.artifact, 'w') as f:
-            f.write(TEMPLATE.format(','.join(bads), s, LINK))
-        detail.note = '{} require{} Python 2 and 3'.format(', '.join(bads), s)
+            f.write(TEMPLATE.format(rpms=rpms,
+                                    info_url=INFO_URL,
+                                    bug_url=BUG_URL))
+        problems = 'Problematic RPMs:\n' + rpms
     else:
-        detail.note = 'no problems found'
+        problems = 'No problems found.'
 
-    summary = 'python-versions {} for {} ({})'.format(
-              outcome, koji_build, detail.note)
+    summary = 'python-versions {} for {}. {}'.format(
+              outcome, koji_build, problems)
     log.info(summary)
 
     output = check.export_YAML(detail)
