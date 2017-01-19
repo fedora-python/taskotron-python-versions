@@ -62,6 +62,7 @@ NAME_EXACTS = {
 NAME_NOTS = (
     b'python-rpm-macros',
     b'python-srpm-macros',
+    b'python-sphinx-locale',
 )
 
 WHITELIST = (
