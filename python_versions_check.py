@@ -63,6 +63,7 @@ NAME_NOTS = (
     b'python-rpm-macros',
     b'python-srpm-macros',
     b'python-sphinx-locale',
+    b'python-multilib-conf',
 )
 
 WHITELIST = (
