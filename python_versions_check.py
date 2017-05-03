@@ -64,6 +64,7 @@ NAME_NOTS = (
     b'python-srpm-macros',
     b'python-sphinx-locale',
     b'python-multilib-conf',
+    b'python-ldb-devel-common',
 )
 
 WHITELIST = (
