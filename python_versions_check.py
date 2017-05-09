@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from pyversions import log, two_three_check
 
 
-INFO_URL = ('https://python-rpm-porting.readthedocs.io/en/latest/applications.html'
+INFO_URL = ('https://python-rpm-porting.readthedocs.io/en/'
+            'latest/applications.html'
             '#are-shebangs-dragging-you-down-to-python-2')
 BUG_URL = 'https://github.com/fedora-python/task-python-versions/issues'
 TEMPLATE = '''These RPMs require both Python 2 and Python 3:
