@@ -37,13 +37,20 @@ $ runtask -i eric-6.1.6-2.fc25 -t koji_build runtask.yml
 ## Tests
 
 There are also automatic tests available. You can run them using [tox].
-You'll need the above mentioned dependencies installed as well.
+You'll need the above mentioned dependencies and `python3-rpm` installed as well.
 
 ```console
 $ tox
 ```
 
+Automatic tests also happen on [Tarvis CI]. Since Travis CI runs on Ubuntu
+and Ubuntu lacks the RPM Python bindings and Taskotron, [Docker] is used
+to run the tests on Fedora. You can run the tests in Docker as well,
+just use the commands from the `.travis.yml` file.
+
 [tox]: https://tox.readthedocs.io/
+[Tarvis CI]: https://travis-ci.org/fedora-python/task-python-versions/
+[Docker]: https://docs.travis-ci.com/user/docker/
 
 ## License
 
