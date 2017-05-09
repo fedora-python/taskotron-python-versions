@@ -44,3 +44,17 @@ $ tox
 ```
 
 [tox]: https://tox.readthedocs.io/
+
+## License
+
+This code has been dedicated to the Public Domain, it is licensed with
+[CC0 1.0 Universal Public Domain Dedication](https://creativecommons.org/publicdomain/zero/1.0/),
+full text of the license is available in the LICENSE file in this repository.
+
+Please note that the RPM packages in this repository used for testing have
+their own license terms and are not dedicated to the Public Domain.
+
+The sources of those packages can be found in [Koji] by searching the package
+name and selecting the appropriate version.
+
+[Koji]: https://koji.fedoraproject.org/koji/
