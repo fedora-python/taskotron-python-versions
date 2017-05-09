@@ -1,9 +1,4 @@
-import logging
+from .two_three import task_two_three
 
-log = logging.getLogger('python-versions')
-log.setLevel(logging.DEBUG)
-log.addHandler(logging.NullHandler())
 
-from .dependencies import two_three_check
-
-__all__ = ('log', 'two_three_check')
+__all__ = ('task_two_three',)

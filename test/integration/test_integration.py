@@ -8,12 +8,7 @@ import yaml
 import pytest
 
 
-PASSED = 'PASSED'
-FAILED = 'FAILED'
-FAILED_NEVR = 'tracer-0.6.9-1.fc23'
-
-
-Result = namedtuple('Result', ['outcome', 'artifact'])
+Result = namedtuple('Result', ['outcome', 'artifact', 'item'])
 
 
 def parse_results(log):
@@ -40,7 +35,7 @@ def parse_results(log):
 def run_task(nevr):
     '''
     Run the task on a Koji build.
-    Returns the outcome and artifact in the Result namedtuple
+    Returns a dict with Results (outcome, artifact, item)
     '''
     proc = subprocess.Popen(
         ['runtask', '-i', nevr, '-t', 'koji_build', 'runtask.yml'],
@@ -53,31 +48,45 @@ def run_task(nevr):
         raise RuntimeError('runtask exited with {}'.format(proc.returncode))
     results = parse_results(err)
 
-    outcome = results[0]['outcome']  # this might be longer list in the future
-    artifact = results[0].get('artifact')
-    return Result(outcome, artifact)
+    return {r['checkname']: Result(r.get('outcome'),
+                                   r.get('artifact'),
+                                   r.get('item')) for r in results}
 
 
 @pytest.mark.parametrize('nevr', ('eric-6.1.6-2.fc25',
                                   'python-six-1.10.0-3.fc25',
                                   'python-admesh-0.98.5-3.fc25'))
-def test_nevr_passed(nevr):
-    assert run_task(nevr).outcome == PASSED
+def test_two_three_nevr_passed(nevr):
+    assert run_task(nevr)['python-versions.two_three'].outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('nevr', (FAILED_NEVR,))
-def test_nevr_failed(nevr):
-    assert run_task(nevr).outcome == FAILED
+@pytest.fixture()
+def tracer_results():
+    '''This should FAIL the two_three check'''
+    return run_task('tracer-0.6.9-1.fc23')
 
 
-def test_artifact_looks_as_expected():
-    artifact = run_task(FAILED_NEVR).artifact
-    with open(artifact) as f:
+def test_two_three_nevr_failed(tracer_results):
+    assert tracer_results['python-versions.two_three'].outcome == 'FAILED'
+
+
+def test_one_failed_result_is_total_failed(tracer_results):
+    assert tracer_results['python-versions'].outcome == 'FAILED'
+
+
+def test_artifact_is_the_same(tracer_results):
+    assert (tracer_results['python-versions'].artifact ==
+            tracer_results['python-versions.two_three'].artifact)
+
+
+def test_artifact_contains_two_three_and_looks_as_expected(tracer_results):
+    result = tracer_results['python-versions.two_three']
+    with open(result.artifact) as f:
         artifact = f.read()
 
-    assert artifact.strip().startswith(dedent('''
+    assert dedent('''
         These RPMs require both Python 2 and Python 3:
         {}.noarch.rpm
          * Python 2 dependency: python(abi) = 2.7
          * Python 3 dependecny: python(abi) = 3.4
-    ''').format(FAILED_NEVR).strip())
+    ''').strip().format(result.item) in artifact.strip()
