@@ -1,5 +1,7 @@
+from collections import namedtuple
 import subprocess
 import sys
+from textwrap import dedent
 
 import yaml
 
@@ -8,6 +10,10 @@ import pytest
 
 PASSED = 'PASSED'
 FAILED = 'FAILED'
+FAILED_NEVR = 'tracer-0.6.9-1.fc23'
+
+
+Result = namedtuple('Result', ['outcome', 'artifact'])
 
 
 def parse_results(log):
@@ -33,7 +39,8 @@ def parse_results(log):
 
 def run_task(nevr):
     '''
-    Run the task on a Koji build
+    Run the task on a Koji build.
+    Returns the outcome and artifact in the Result namedtuple
     '''
     proc = subprocess.Popen(
         ['runtask', '-i', nevr, '-t', 'koji_build', 'runtask.yml'],
@@ -45,16 +52,30 @@ def run_task(nevr):
     if proc.returncode != 0:
         raise RuntimeError('runtask exited with {}'.format(proc.returncode))
     results = parse_results(err)
-    return results[0]['outcome']  # this might be longer list in the future
+
+    outcome = results[0]['outcome']  # this might be longer list in the future
+    artifact = results[0].get('artifact')
+    return Result(outcome, artifact)
 
 
 @pytest.mark.parametrize('nevr', ('eric-6.1.6-2.fc25',
                                   'python-six-1.10.0-3.fc25',
                                   'python-admesh-0.98.5-3.fc25'))
 def test_nevr_passed(nevr):
-    assert run_task(nevr) == PASSED
+    assert run_task(nevr).outcome == PASSED
 
 
-@pytest.mark.parametrize('nevr', ('tracer-0.6.9-1.fc23',))
+@pytest.mark.parametrize('nevr', (FAILED_NEVR,))
 def test_nevr_failed(nevr):
-    assert run_task(nevr) == FAILED
+    assert run_task(nevr).outcome == FAILED
+
+
+def test_artifact_looks_as_expected():
+    artifact = run_task(FAILED_NEVR).artifact
+    with open(artifact) as f:
+        artifact = f.read()
+
+    assert artifact.strip().startswith(dedent('''
+        These RPMs require both Python 2 and Python 3:
+        {}.noarch.rpm
+    ''').format(FAILED_NEVR).strip())
