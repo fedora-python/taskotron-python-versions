@@ -51,11 +51,20 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
         else:
             log.debug('Ignoring non-rpm file: {}'.format(path))
 
+    artifact = os.path.join(artifactsdir, 'output.log')
+    detail = task_two_three(rpms, koji_build, artifact)
+
+    output = check.export_YAML(detail)
+    return output
+
+
+def task_two_three(rpms, koji_build, artifact):
+    '''Check whether given rpms depenss on Python 2 and 3 at the same time'''
     outcome = 'PASSED'
     bads = {}
 
     if not rpms:
-        log.warn('No binary rpm files found in: {}'.format(workdir))
+        log.warn('No binary rpm files found')
     for path in rpms:
         filename = os.path.basename(path)
         log.debug('Checking {}'.format(filename))
@@ -80,12 +89,13 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
             outcome = 'FAILED'
             bads[filename] = py_versions
 
-    detail = check.CheckDetail(koji_build,
-                               check.ReportType.KOJI_BUILD,
-                               outcome)
+    detail = check.CheckDetail(checkname='python-versions.two_three',
+                               item=koji_build,
+                               report_type=check.ReportType.KOJI_BUILD,
+                               outcome=outcome)
 
     if bads:
-        detail.artifact = os.path.join(artifactsdir, 'output.log')
+        detail.artifact = artifact
         rpms = ''
         for rpm, py_versions in bads.items():
             rpms += ('{}\n'
@@ -106,8 +116,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
               outcome, koji_build, problems)
     log.info(summary)
 
-    output = check.export_YAML(detail)
-    return output
+    return detail
 
 
 if __name__ == '__main__':
