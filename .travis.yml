@@ -1,0 +1,10 @@
+sudo: required
+
+services:
+  - docker
+
+install:
+  - docker build -t taskotron .
+
+script:
+  - docker  run  -v $(pwd):$(pwd) -w $(pwd) -i -t  taskotron

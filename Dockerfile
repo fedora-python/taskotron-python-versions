@@ -1,0 +1,9 @@
+FROM fedora
+
+RUN dnf -y install --setopt=install_weak_deps=false --setopt=tsflags=nodocs \
+    python2-rpm libtaskotron-core libtaskotron-fedora python3-rpm tox \
+    python2 python3 && dnf clean all
+
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+CMD ["/usr/bin/tox"]
