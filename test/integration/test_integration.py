@@ -78,4 +78,6 @@ def test_artifact_looks_as_expected():
     assert artifact.strip().startswith(dedent('''
         These RPMs require both Python 2 and Python 3:
         {}.noarch.rpm
+         * Python 2 dependency: python(abi) = 2.7
+         * Python 3 dependecny: python(abi) = 3.4
     ''').format(FAILED_NEVR).strip())

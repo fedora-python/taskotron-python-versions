@@ -47,7 +47,10 @@ NAME_NOTS = (
 def two_three_check(path):
     '''
     For the binary RPM in path, report back what Python
-    versions it depends on
+    versions it depends on and why we think so
+    Returns package name and a dictionary.
+    The dictionary contains the 2 and/or 3 keys with the package we consider
+    drags the appropriate Python version.
     '''
     ts = rpm.TransactionSet()
     with open(path, 'rb') as fdno:
@@ -57,7 +60,7 @@ def two_three_check(path):
             log.error('{}: {}'.format(os.path.basename(path), e))
             return None, None
 
-    py_versions = set()
+    py_versions = {}
 
     for nevr in hdr[rpm.RPMTAG_REQUIRENEVRS]:
         for py_version, starts in NEVRS_STARTS.items():
@@ -65,7 +68,7 @@ def two_three_check(path):
                 if nevr.startswith(start):
                     log.debug('Found dependency {}'.format(nevr.decode()))
                     log.debug('Requires Python {}'.format(py_version))
-                    py_versions.add(py_version)
+                    py_versions[py_version] = nevr
                     break
 
     for name in hdr[rpm.RPMTAG_REQUIRENAME]:
@@ -75,13 +78,13 @@ def two_three_check(path):
                     if name.startswith(start) and name not in NAME_NOTS:
                         log.debug('Found dependency {}'.format(name.decode()))
                         log.debug('Requires Python {}'.format(py_version))
-                        py_versions.add(py_version)
+                        py_versions[py_version] = name
                         break
         for py_version, exacts in NAME_EXACTS.items():
             if py_version not in py_versions:
                 if name in exacts:
                     log.debug('Found dependency {}'.format(name.decode()))
                     log.debug('Requires Python {}'.format(py_version))
-                    py_versions.add(py_version)
+                    py_versions[py_version] = name
 
     return hdr[rpm.RPMTAG_NAME], py_versions

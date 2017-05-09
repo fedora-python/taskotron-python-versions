@@ -18,19 +18,22 @@ def gpkg(pkgglob):
                                      'python2-geoip2*'))
 def test_package_depends_on_2_only(pkgglob):
     name, versions = two_three_check(gpkg(pkgglob))
-    assert versions == {2}
+    assert 2 in versions
+    assert 3 not in versions
 
 
 @pytest.mark.parametrize('pkgglob', ('python3-pyserial*',))
 def test_package_depends_on_3_only(pkgglob):
     name, versions = two_three_check(gpkg(pkgglob))
-    assert versions == {3}
+    assert 2 not in versions
+    assert 3 in versions
 
 
 @pytest.mark.parametrize('pkgglob', ('tracer*',))
 def test_package_depends_on_2_and_3(pkgglob):
     name, versions = two_three_check(gpkg(pkgglob))
-    assert versions == {2, 3}
+    assert 2 in versions
+    assert 3 in versions
 
 
 @pytest.mark.parametrize('pkgglob', ('libgccjit-devel*',))

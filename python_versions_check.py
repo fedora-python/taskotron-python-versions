@@ -52,7 +52,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
             log.debug('Ignoring non-rpm file: {}'.format(path))
 
     outcome = 'PASSED'
-    bads = []
+    bads = {}
 
     if not rpms:
         log.warn('No binary rpm files found in: {}'.format(workdir))
@@ -73,10 +73,12 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
             log.info('{} requires Python {} only, that\'s OK'
                      .format(filename, py_version))
         else:
-            log.error('{} requires both Python 2 and 3, that\'s usually bad.'
-                      .format(filename))
+            log.error('{} requires both Python 2 and 3, that\'s usually bad. '
+                      'Python 2 dragged by {}. '
+                      'Python 3 dragged by {}.'
+                      .format(filename, py_versions[2], py_versions[3]))
             outcome = 'FAILED'
-            bads.append(filename)
+            bads[filename] = py_versions
 
     detail = check.CheckDetail(koji_build,
                                check.ReportType.KOJI_BUILD,
@@ -84,12 +86,19 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
 
     if bads:
         detail.artifact = os.path.join(artifactsdir, 'output.log')
-        rpms = '\n'.join(bads)
+        rpms = ''
+        for rpm, py_versions in bads.items():
+            rpms += ('{}\n'
+                     ' * Python 2 dependency: {}\n'
+                     ' * Python 3 dependecny: {}\n'.format(rpm,
+                                                           py_versions[2],
+                                                           py_versions[3]))
         with open(detail.artifact, 'w') as f:
             f.write(TEMPLATE.format(rpms=rpms,
                                     info_url=INFO_URL,
                                     bug_url=BUG_URL))
-        problems = 'Problematic RPMs:\n' + rpms
+        names = ', '.join(str(k) for k in bads.keys())
+        problems = 'Problematic RPMs:\n' + names
     else:
         problems = 'No problems found.'
 
