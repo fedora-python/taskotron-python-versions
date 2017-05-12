@@ -41,6 +41,7 @@ NAME_NOTS = (
     b'python-sphinx-locale',
     b'python-multilib-conf',
     b'python-ldb-devel-common',
+    b'python-qt5-rpm-macros',
 )
 
 
