@@ -13,8 +13,8 @@ from libtaskotron import check
 # before we import from pyversions, let's add our dir to sys.path
 sys.path.insert(0, os.path.dirname(__file__))
 
-from pyversions import task_two_three
-from pyversions.common import log
+from taskotron_python_versions import task_two_three
+from taskotron_python_versions.common import log
 
 
 def run(koji_build, workdir='.', artifactsdir='artifacts'):

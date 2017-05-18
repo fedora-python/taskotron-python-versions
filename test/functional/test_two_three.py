@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from pyversions.two_three import check_two_three
+from taskotron_python_versions.two_three import check_two_three
 
 
 def pkg(filename):
