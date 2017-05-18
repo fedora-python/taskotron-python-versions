@@ -112,7 +112,7 @@ def check_two_three(path):
 
 
 def task_two_three(rpms, koji_build, artifact):
-    '''Check whether given rpms depenss on Python 2 and 3 at the same time'''
+    '''Check whether given rpms depends on Python 2 and 3 at the same time'''
 
     # libtaskotron is not available on Python 3, so we do it inside
     # to make the above function testable anyway
