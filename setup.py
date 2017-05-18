@@ -5,11 +5,14 @@ from setuptools import setup, find_packages
 
 description = """Taskotron checks regarding Python versions"""
 
+with open('README.rst') as readme:
+    long_description = readme.read()
+
 setup(
     name='taskotron-python-versions',
     version='0.0.dev1',
     description=description,
-    long_description=description,
+    long_description=long_description,
     keywords='taskotron fedora python rpm',
     author='Miro Hrončok, Iryna Shcherbina',
     author_email='mhroncok@redhat.com, ishcherb@redhat.com',
