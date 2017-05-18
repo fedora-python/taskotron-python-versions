@@ -88,22 +88,19 @@ def check_two_three(path):
 
     for nevr in hdr[rpm.RPMTAG_REQUIRENEVRS]:
         for py_version, starts in NEVRS_STARTS.items():
-            for start in starts:
-                if nevr.startswith(start):
-                    log.debug('Found dependency {}'.format(nevr.decode()))
-                    log.debug('Requires Python {}'.format(py_version))
-                    py_versions[py_version] = nevr
-                    break
+            if nevr.startswith(starts):
+                log.debug('Found dependency {}'.format(nevr.decode()))
+                log.debug('Requires Python {}'.format(py_version))
+                py_versions[py_version] = nevr
 
     for name in hdr[rpm.RPMTAG_REQUIRENAME]:
         for py_version, starts in NAME_STARTS.items():
             if py_version not in py_versions:
-                for start in starts:
-                    if name.startswith(start) and name not in NAME_NOTS:
-                        log.debug('Found dependency {}'.format(name.decode()))
-                        log.debug('Requires Python {}'.format(py_version))
-                        py_versions[py_version] = name
-                        break
+                if name.startswith(starts) and name not in NAME_NOTS:
+                    log.debug('Found dependency {}'.format(name.decode()))
+                    log.debug('Requires Python {}'.format(py_version))
+                    py_versions[py_version] = name
+
         for py_version, exacts in NAME_EXACTS.items():
             if py_version not in py_versions:
                 if name in exacts:
