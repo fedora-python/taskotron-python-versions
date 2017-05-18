@@ -5,3 +5,5 @@ __pycache__
 /artifacts
 /.tox
 /.eggs
+.cache
+*.egg-info

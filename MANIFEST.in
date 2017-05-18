@@ -1,0 +1,7 @@
+include LICENSE
+include *.ini
+include *.md
+include *.yml
+include python_versions_check.py
+recursive-include test *.rpm
+recursive-include test *.py
