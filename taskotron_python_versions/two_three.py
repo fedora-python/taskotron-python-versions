@@ -1,6 +1,3 @@
-import os
-import rpm
-
 from .common import log, BUG_URL
 
 
@@ -68,32 +65,24 @@ WHITELIST = (
 )
 
 
-def check_two_three(path):
+def check_two_three(package):
     '''
-    For the binary RPM in path, report back what Python
+    Given the package object, report back what Python
     versions it depends on and why we think so
     Returns package name and a dictionary.
     The dictionary contains the 2 and/or 3 keys with the package we consider
     drags the appropriate Python version.
     '''
-    ts = rpm.TransactionSet()
-    with open(path, 'rb') as fdno:
-        try:
-            hdr = ts.hdrFromFdno(fdno)
-        except rpm.error as e:
-            log.error('{}: {}'.format(os.path.basename(path), e))
-            return None, None
-
     py_versions = {}
 
-    for nevr in hdr[rpm.RPMTAG_REQUIRENEVRS]:
+    for nevr in package.require_nevrs:
         for py_version, starts in NEVRS_STARTS.items():
             if nevr.startswith(starts):
                 log.debug('Found dependency {}'.format(nevr.decode()))
                 log.debug('Requires Python {}'.format(py_version))
                 py_versions[py_version] = nevr
 
-    for name in hdr[rpm.RPMTAG_REQUIRENAME]:
+    for name in package.require_names:
         for py_version, starts in NAME_STARTS.items():
             if py_version not in py_versions:
                 if name.startswith(starts) and name not in NAME_NOTS:
@@ -108,10 +97,11 @@ def check_two_three(path):
                     log.debug('Requires Python {}'.format(py_version))
                     py_versions[py_version] = name
 
-    return hdr[rpm.RPMTAG_NAME], py_versions
+    package.py_versions = set(py_versions)
+    return package.name, py_versions
 
 
-def task_two_three(rpms, koji_build, artifact):
+def task_two_three(packages, koji_build, artifact):
     '''Check whether given rpms depends on Python 2 and 3 at the same time'''
 
     # libtaskotron is not available on Python 3, so we do it inside
@@ -121,29 +111,27 @@ def task_two_three(rpms, koji_build, artifact):
     outcome = 'PASSED'
     bads = {}
 
-    for path in rpms:
-        filename = os.path.basename(path)
-        log.debug('Checking {}'.format(filename))
-        name, py_versions = check_two_three(path)
-        if name is None:
-            # RPM could not read that file, not our problem
-            # error is already logged
-            pass
-        elif name in WHITELIST:
+    for package in packages:
+        log.debug('Checking {}'.format(package.filename))
+        name, py_versions = check_two_three(package)
+
+        if name in WHITELIST:
             log.warn('{} is excluded from this check'.format(name))
         elif len(py_versions) == 0:
-            log.info('{} does not require Python, that\'s OK'.format(filename))
+            log.info('{} does not require Python, that\'s OK'
+                     .format(package.filename))
         elif len(py_versions) == 1:
             py_version = next(iter(py_versions))
             log.info('{} requires Python {} only, that\'s OK'
-                     .format(filename, py_version))
+                     .format(package.filename, py_version))
         else:
             log.error('{} requires both Python 2 and 3, that\'s usually bad. '
                       'Python 2 dragged by {}. '
                       'Python 3 dragged by {}.'
-                      .format(filename, py_versions[2], py_versions[3]))
+                      .format(package.filename, py_versions[2],
+                              py_versions[3]))
             outcome = 'FAILED'
-            bads[filename] = py_versions
+            bads[package.filename] = py_versions
 
     detail = check.CheckDetail(checkname='python-versions.two_three',
                                item=koji_build,

@@ -14,7 +14,7 @@ from libtaskotron import check
 sys.path.insert(0, os.path.dirname(__file__))
 
 from taskotron_python_versions import task_two_three
-from taskotron_python_versions.common import log
+from taskotron_python_versions.common import log, Package, PackageException
 
 
 def run(koji_build, workdir='.', artifactsdir='artifacts'):
@@ -23,21 +23,26 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
 
     # find files to run on
     files = sorted(os.listdir(workdir))
-    rpms = []
+    packages = []
     for file_ in files:
         path = os.path.join(workdir, file_)
         if file_.endswith('.rpm'):
-            rpms.append(path)
+            try:
+                package = Package(path)
+                packages.append(package)
+            except PackageException as err:
+                log.error('{}: {}'.format(file_, err))
         else:
             log.debug('Ignoring non-rpm file: {}'.format(path))
-    if not rpms:
+
+    if not packages:
         log.warn('No binary rpm files found')
 
     artifact = os.path.join(artifactsdir, 'output.log')
 
     # put all the details form subtask in this list
     details = []
-    details.append(task_two_three(rpms, koji_build, artifact))
+    details.append(task_two_three(packages, koji_build, artifact))
 
     # finally, the main detail with overall results
     outcome = 'PASSED'

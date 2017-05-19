@@ -3,6 +3,7 @@ import os
 
 import pytest
 
+from taskotron_python_versions.common import Package
 from taskotron_python_versions.two_three import check_two_three
 
 
@@ -11,7 +12,7 @@ def pkg(filename):
 
 
 def gpkg(pkgglob):
-    return glob.glob(pkg(pkgglob))[0]
+    return Package(glob.glob(pkg(pkgglob))[0])
 
 
 @pytest.mark.parametrize('pkgglob', ('pyserial*', 'python-peak-rules*',
