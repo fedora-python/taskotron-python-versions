@@ -3,6 +3,7 @@
 *.pyc
 __pycache__
 /artifacts
+/dist
 /.tox
 /.eggs
 .cache
