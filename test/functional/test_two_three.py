@@ -1,18 +1,8 @@
-import glob
-import os
-
 import pytest
 
-from taskotron_python_versions.common import Package
 from taskotron_python_versions.two_three import check_two_three
 
-
-def pkg(filename):
-    return os.path.join(os.path.dirname(__file__), '..', 'fixtures', filename)
-
-
-def gpkg(pkgglob):
-    return Package(glob.glob(pkg(pkgglob))[0])
+from .common import gpkg
 
 
 @pytest.mark.parametrize('pkgglob', ('pyserial*', 'python-peak-rules*',
