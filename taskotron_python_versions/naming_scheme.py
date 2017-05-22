@@ -1,13 +1,42 @@
+import collections
+
+from .common import log, BUG_URL
+
+
+INFO_URL = (
+    'https://python-rpm-porting.readthedocs.io/en/latest/naming-scheme.html')
+
+TEMPLATE = """These RPMs' names violate the new Python package naming guidelines:
+{rpms}
+
+Read the following document to find more information and a possible cause:
+{info_url}
+Or ask at #fedora-python IRC channel for help.
+
+If you think the result is false or intentional, file a bug against:
+{bug_url}
+
+-----------
+"""
+
 
 def has_pythonX_package(pkg_name, name_by_version, version):
-    """Check whether pythonX-foo or foo-pythonX exists."""
+    """Given the package name, check if python<version>-<pkg_name>
+    or <pkg_name>-python<version> exists in name_by_version.
+
+    Return: (bool) True if such package name exists, False otherwise
+    """
     return (
         'python{}-{}'.format(version, pkg_name) in name_by_version[version] or
         '{}-python{}'.format(pkg_name, version) in name_by_version[version])
 
 
 def is_unversioned(name):
-    """Check whether unversioned python is used in name (e.g. python-foo)."""
+    """Check whether unversioned python prefix is used
+    in the name (e.g. python-foo).
+
+    Return: (bool) True if used, False otherwise
+    """
     return (
         name.startswith('python-') or
         '-python-' in name or
@@ -15,7 +44,10 @@ def is_unversioned(name):
 
 
 def check_naming_policy(pkg, name_by_version):
-    """Check if Python 2 subpackages are correctly named."""
+    """Check if the package is correctly named.
+
+    Return: (bool) True if package name is not correct, False otherwise
+    """
     # Missing python2- prefix (e.g. foo and python3-foo).
     missing_prefix = (
         'python' not in pkg.name and
@@ -25,3 +57,62 @@ def check_naming_policy(pkg, name_by_version):
     if is_unversioned(pkg.name) or missing_prefix:
         return True
     return False
+
+
+def task_naming_scheme(packages, koji_build, artifact):
+    """Check if the given packages are named according
+    to Python package naming guidelines.
+    """
+    # libtaskotron is not available on Python 3, so we do it inside
+    # to make the above functions testable anyway
+    from libtaskotron import check
+
+    outcome = 'PASSED'
+    incorrect_names = []
+
+    name_by_version = collections.defaultdict(set)
+    for package in packages:
+        for version in package.py_versions:
+            name_by_version[version].add(package.name)
+
+    for package in packages:
+        log.debug('Checking {}'.format(package.filename))
+        if not package.py_versions:
+            log.info('{} does not require Python, skipping name check'.format(
+                package.filename))
+            continue
+
+        misnamed = check_naming_policy(package, name_by_version)
+        if misnamed:
+            log.error(
+                '{} violates the new Python package'
+                ' naming guidelines'.format(package.filename))
+            outcome = 'FAILED'
+            incorrect_names.append(package.filename)
+        else:
+            log.info('{} is using a correct naming scheme'.format(
+                package.filename))
+
+    detail = check.CheckDetail(
+        checkname='python-versions.naming_scheme',
+        item=koji_build,
+        report_type=check.ReportType.KOJI_BUILD,
+        outcome=outcome)
+
+    if incorrect_names:
+        detail.artifact = artifact
+        names = ', '.join(incorrect_names)
+        with open(detail.artifact, 'a') as f:
+            f.write(TEMPLATE.format(
+                rpms=names,
+                info_url=INFO_URL,
+                bug_url=BUG_URL))
+        problems = 'Problematic RPMs:\n' + names
+    else:
+        problems = 'No problems found.'
+
+    summary = 'python-versions.naming_scheme {} for {}. {}'.format(
+        outcome, koji_build, problems)
+    log.info(summary)
+
+    return detail

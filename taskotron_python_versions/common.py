@@ -36,7 +36,8 @@ class Package(object):
 
     @property
     def name(self):
-        return self.hdr[rpm.RPMTAG_NAME]
+        """Package name as a string."""
+        return self.hdr[rpm.RPMTAG_NAME].decode()
 
     @property
     def require_names(self):
