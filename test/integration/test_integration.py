@@ -32,10 +32,12 @@ def parse_results(log):
     return yaml.load('\n'.join(results))['results']
 
 
-def run_task(nevr):
+def run_task(nevr, *, reterr=False):
     '''
     Run the task on a Koji build.
     Returns a dict with Results (outcome, artifact, item)
+    If reterr is true, returns a tuple with the above and captured stderr
+    If reterr is false, prints the stderr
     '''
     proc = subprocess.Popen(
         ['runtask', '-i', nevr, '-t', 'koji_build', 'runtask.yml'],
@@ -43,14 +45,43 @@ def run_task(nevr):
         universal_newlines=True,
     )
     _, err = proc.communicate()
-    print(err, file=sys.stderr)
     if proc.returncode != 0:
         raise RuntimeError('runtask exited with {}'.format(proc.returncode))
     results = parse_results(err)
 
-    return {r['checkname']: Result(r.get('outcome'),
-                                   r.get('artifact'),
-                                   r.get('item')) for r in results}
+    ret = {r['checkname']: Result(r.get('outcome'),
+                                  r.get('artifact'),
+                                  r.get('item')) for r in results}
+
+    if reterr:
+        return ret, err
+
+    print(err, file=sys.stderr)
+    return ret
+
+
+@pytest.fixture()
+def tracer_results(_tracer_results):
+    '''This should FAIL the two_three check'''
+    print(_tracer_results[1], file=sys.stderr)
+    return _tracer_results[0]
+
+
+@pytest.fixture(scope="session")
+def _tracer_results():
+    return run_task('tracer-0.6.9-1.fc23', reterr=True)
+
+
+@pytest.fixture()
+def copr_results(_copr_results):
+    '''This should FAIL the name_scheme check'''
+    print(_copr_results[1], file=sys.stderr)
+    return _copr_results[0]
+
+
+@pytest.fixture(scope="session")
+def _copr_results():
+    return run_task('python-copr-1.77-1.fc26', reterr=True)
 
 
 @pytest.mark.parametrize('nevr', ('eric-6.1.6-2.fc25',
@@ -58,12 +89,6 @@ def run_task(nevr):
                                   'python-admesh-0.98.5-3.fc25'))
 def test_two_three_nevr_passed(nevr):
     assert run_task(nevr)['python-versions.two_three'].outcome == 'PASSED'
-
-
-@pytest.fixture()
-def tracer_results():
-    '''This should FAIL the two_three check'''
-    return run_task('tracer-0.6.9-1.fc23')
 
 
 def test_two_three_nevr_failed(tracer_results):
@@ -96,12 +121,6 @@ def test_artifact_contains_two_three_and_looks_as_expected(tracer_results):
                                   'python-epub-0.5.2-8.fc26'))
 def test_naming_scheme_nevr_passed(nevr):
     assert run_task(nevr)['python-versions.naming_scheme'].outcome == 'PASSED'
-
-
-@pytest.fixture(scope="session")
-def copr_results():
-    """This should FAIL the name_scheme check"""
-    return run_task('python-copr-1.77-1.fc26')
 
 
 def test_naming_scheme_nevr_failed(copr_results):
