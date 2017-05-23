@@ -7,7 +7,9 @@ infrastructure after any package is built.
 Currently the following checks are available:
 
 -  Whether a package does not require Python 2 and Python 3 at the same
-   time.
+   time;
+
+-  Whether the package name follows the Python package naming scheme.
 
 Running
 -------
