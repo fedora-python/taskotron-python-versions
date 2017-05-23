@@ -90,3 +90,30 @@ def test_artifact_contains_two_three_and_looks_as_expected(tracer_results):
          * Python 2 dependency: python(abi) = 2.7
          * Python 3 dependecny: python(abi) = 3.4
     ''').strip().format(result.item) in artifact.strip()
+
+
+@pytest.mark.parametrize('nevr', ('eric-6.1.6-2.fc25',
+                                  'python-epub-0.5.2-8.fc26'))
+def test_naming_scheme_nevr_passed(nevr):
+    assert run_task(nevr)['python-versions.naming_scheme'].outcome == 'PASSED'
+
+
+@pytest.fixture(scope="session")
+def copr_results():
+    """This should FAIL the name_scheme check"""
+    return run_task('python-copr-1.77-1.fc26')
+
+
+def test_naming_scheme_nevr_failed(copr_results):
+    assert copr_results['python-versions.naming_scheme'].outcome == 'FAILED'
+
+
+def test_artifact_contains_naming_scheme_and_looks_as_expected(copr_results):
+    result = copr_results['python-versions.naming_scheme']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    assert dedent("""
+        These RPMs' names violate the new Python package naming guidelines:
+        {}.noarch.rpm
+    """).strip().format(result.item) in artifact.strip()
