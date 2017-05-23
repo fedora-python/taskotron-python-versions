@@ -9,6 +9,28 @@ log.addHandler(logging.NullHandler())
 
 BUG_URL = 'https://github.com/fedora-python/task-python-versions/issues'
 
+TEMPLATE = """
+{message}
+
+Read the following document to find more information and a possible cause:
+{info_url}
+Or ask at #fedora-python IRC channel for help.
+
+If you think the result is false or intentional, file a bug against:
+{bug_url}
+
+-----------
+"""
+
+
+def write_to_artifact(artifact, message, info_url):
+    """Write failed check result details to atrifact."""
+    with open(artifact, 'a') as f:
+        f.write(TEMPLATE.format(
+            message=message,
+            info_url=info_url,
+            bug_url=BUG_URL))
+
 
 class PackageException(Exception):
 

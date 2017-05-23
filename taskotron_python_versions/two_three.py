@@ -1,4 +1,4 @@
-from .common import log, BUG_URL
+from .common import log, write_to_artifact
 
 
 NEVRS_STARTS = {
@@ -46,18 +46,7 @@ INFO_URL = ('https://python-rpm-porting.readthedocs.io/en/'
             'latest/applications.html'
             '#are-shebangs-dragging-you-down-to-python-2')
 
-TEMPLATE = '''These RPMs require both Python 2 and Python 3:
-{rpms}
-
-Read the following document to find more information and a possible cause:
-{info_url}
-Or ask at #fedora-python IRC channel for help.
-
-If you think the result is false or intentional, file a bug against:
-{bug_url}
-
------------
-'''
+MESSAGE = 'These RPMs require both Python 2 and Python 3:\n{}'
 
 WHITELIST = (
     'eric',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342492
@@ -147,10 +136,7 @@ def task_two_three(packages, koji_build, artifact):
                      ' * Python 3 dependecny: {}\n'.format(name,
                                                            py_versions[2],
                                                            py_versions[3]))
-        with open(detail.artifact, 'a') as f:
-            f.write(TEMPLATE.format(rpms=rpms,
-                                    info_url=INFO_URL,
-                                    bug_url=BUG_URL))
+        write_to_artifact(artifact, MESSAGE.format(rpms), INFO_URL)
         names = ', '.join(str(k) for k in bads.keys())
         problems = 'Problematic RPMs:\n' + names
     else:

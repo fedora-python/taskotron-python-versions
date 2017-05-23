@@ -1,23 +1,13 @@
 import collections
 
-from .common import log, BUG_URL
+from .common import log, write_to_artifact
 
 
 INFO_URL = (
     'https://python-rpm-porting.readthedocs.io/en/latest/naming-scheme.html')
 
-TEMPLATE = """These RPMs' names violate the new Python package naming guidelines:
-{rpms}
-
-Read the following document to find more information and a possible cause:
-{info_url}
-Or ask at #fedora-python IRC channel for help.
-
-If you think the result is false or intentional, file a bug against:
-{bug_url}
-
------------
-"""
+MESSAGE = ('These RPMs\' names violate the new Python '
+           'package naming guidelines:\n{}')
 
 
 def has_pythonX_package(pkg_name, name_by_version, version):
@@ -102,11 +92,7 @@ def task_naming_scheme(packages, koji_build, artifact):
     if incorrect_names:
         detail.artifact = artifact
         names = ', '.join(incorrect_names)
-        with open(detail.artifact, 'a') as f:
-            f.write(TEMPLATE.format(
-                rpms=names,
-                info_url=INFO_URL,
-                bug_url=BUG_URL))
+        write_to_artifact(artifact, MESSAGE.format(names), INFO_URL)
         problems = 'Problematic RPMs:\n' + names
     else:
         problems = 'No problems found.'
