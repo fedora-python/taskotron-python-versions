@@ -95,8 +95,12 @@ def test_two_three_nevr_failed(tracer_results):
     assert tracer_results['python-versions.two_three'].outcome == 'FAILED'
 
 
-def test_one_failed_result_is_total_failed(tracer_results):
-    assert tracer_results['python-versions'].outcome == 'FAILED'
+@pytest.mark.parametrize('results', ('tracer_results', 'copr_results'))
+def test_one_failed_result_is_total_failed(results, request):
+    # getting a fixture by name
+    # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
+    results = request.getfixturevalue(results)
+    assert results['python-versions'].outcome == 'FAILED'
 
 
 def test_artifact_is_the_same(tracer_results):
