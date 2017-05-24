@@ -42,6 +42,8 @@ def test_is_unversioned_positive(name):
     'python3-foo',
     'foo-python3',
     'foo-python3-foo',
+    '/usr/libexec/system-python',
+    'libsamba-python-samba4.so',
 ))
 def test_is_unversioned_negative(name):
     assert not is_unversioned(name)

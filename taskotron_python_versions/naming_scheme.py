@@ -1,4 +1,5 @@
 import collections
+import os
 
 from .common import log, write_to_artifact
 
@@ -27,6 +28,10 @@ def is_unversioned(name):
 
     Return: (bool) True if used, False otherwise
     """
+    if (os.path.isabs(name) or  # is an executable
+            os.path.splitext(name)[1]):  # has as extension
+        return False
+
     return (
         name.startswith('python-') or
         '-python-' in name or
