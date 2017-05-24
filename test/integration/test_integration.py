@@ -141,3 +141,32 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(copr_results):
         These RPMs' names violate the new Python package naming guidelines:
         {}
     """).strip().format(result.item) in artifact.strip()
+
+
+@pytest.mark.parametrize('nevr', ('eric-6.1.6-2.fc25',
+                                  'python-epub-0.5.2-8.fc26'))
+def test_requires_naming_scheme_nevr_passed(nevr):
+    task_result = run_task(nevr)['python-versions.requires_naming_scheme']
+    assert task_result.outcome == 'PASSED'
+
+
+def test_requires_naming_scheme_nevr_failed(copr_results):
+    task_result = copr_results['python-versions.requires_naming_scheme']
+    assert task_result.outcome == 'FAILED'
+
+
+def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
+        tracer_results):
+    result = tracer_results['python-versions.requires_naming_scheme']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    assert dedent("""
+        These RPMs use `python-` prefix without Python version in Requires:
+        {}
+         * Requires: python-beautifulsoup4, python-psutil, rpm-python
+
+        This is strongly discouraged and should be avoided. Please check
+        the required packages, and use names with either `python2-` or
+        `python3-` prefix if available.
+    """).strip().format(result.item) in artifact.strip()
