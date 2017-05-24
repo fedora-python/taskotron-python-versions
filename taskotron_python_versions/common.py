@@ -62,6 +62,11 @@ class Package(object):
         return self.hdr[rpm.RPMTAG_NAME].decode()
 
     @property
+    def nvr(self):
+        """Package name and version as a string."""
+        return self.hdr[rpm.RPMTAG_NVR].decode()
+
+    @property
     def require_names(self):
         return self.hdr[rpm.RPMTAG_REQUIRENAME]
 

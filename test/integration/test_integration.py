@@ -138,5 +138,5 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(copr_results):
 
     assert dedent("""
         These RPMs' names violate the new Python package naming guidelines:
-        {}.noarch.rpm
+        {}
     """).strip().format(result.item) in artifact.strip()

@@ -58,7 +58,7 @@ def task_naming_scheme(packages, koji_build, artifact):
     from libtaskotron import check
 
     outcome = 'PASSED'
-    incorrect_names = []
+    incorrect_names = set()
 
     name_by_version = collections.defaultdict(set)
     for package in packages:
@@ -78,7 +78,7 @@ def task_naming_scheme(packages, koji_build, artifact):
                 '{} violates the new Python package'
                 ' naming guidelines'.format(package.filename))
             outcome = 'FAILED'
-            incorrect_names.append(package.filename)
+            incorrect_names.add(package.nvr)
         else:
             log.info('{} is using a correct naming scheme'.format(
                 package.filename))
