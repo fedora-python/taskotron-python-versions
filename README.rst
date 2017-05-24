@@ -9,7 +9,9 @@ Currently the following checks are available:
 -  Whether a package does not require Python 2 and Python 3 at the same
    time;
 
--  Whether the package name follows the Python package naming scheme.
+-  Whether the package name follows the Python package naming scheme;
+
+-  Whether the package uses versioned Python prefix in requirements' names.
 
 Running
 -------
