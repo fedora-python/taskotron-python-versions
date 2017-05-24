@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from taskotron_python_versions import (
     task_two_three,
     task_naming_scheme,
+    task_requires_naming_scheme,
 )
 from taskotron_python_versions.common import log, Package, PackageException
 
@@ -47,6 +48,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     details = []
     details.append(task_two_three(packages, koji_build, artifact))
     details.append(task_naming_scheme(packages, koji_build, artifact))
+    details.append(task_requires_naming_scheme(packages, koji_build, artifact))
 
     # finally, the main detail with overall results
     outcome = 'PASSED'
