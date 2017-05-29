@@ -28,14 +28,19 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     # find files to run on
     files = sorted(os.listdir(workdir))
     packages = []
+    srpm_packages = []
     for file_ in files:
         path = os.path.join(workdir, file_)
         if file_.endswith('.rpm'):
             try:
                 package = Package(path)
-                packages.append(package)
             except PackageException as err:
                 log.error('{}: {}'.format(file_, err))
+            else:
+                if file_.endswith('.src.rpm'):
+                    srpm_packages.append(package)
+                else:
+                    packages.append(package)
         else:
             log.debug('Ignoring non-rpm file: {}'.format(path))
 
@@ -48,7 +53,8 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     details = []
     details.append(task_two_three(packages, koji_build, artifact))
     details.append(task_naming_scheme(packages, koji_build, artifact))
-    details.append(task_requires_naming_scheme(packages, koji_build, artifact))
+    details.append(task_requires_naming_scheme(
+        packages + srpm_packages, koji_build, artifact))
 
     # finally, the main detail with overall results
     outcome = 'PASSED'

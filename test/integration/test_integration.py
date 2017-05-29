@@ -144,7 +144,7 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(copr_results):
 
 
 @pytest.mark.parametrize('nevr', ('eric-6.1.6-2.fc25',
-                                  'python-epub-0.5.2-8.fc26'))
+                                  'python-twine-1.8.1-3.fc26'))
 def test_requires_naming_scheme_nevr_passed(nevr):
     task_result = run_task(nevr)['python-versions.requires_naming_scheme']
     assert task_result.outcome == 'PASSED'
@@ -161,12 +161,16 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
     with open(result.artifact) as f:
         artifact = f.read()
 
+    expected_requires = (
+        'python-beautifulsoup4, python-lxml, python-psutil, '
+        'python-pygments, python-sphinx, rpm-python')
+
     assert dedent("""
-        These RPMs use `python-` prefix without Python version in Requires:
+        These RPMs use `python-` prefix without Python version in *Requires:
         {}
-         * Requires: python-beautifulsoup4, python-psutil, rpm-python
+         * Requires: {}
 
         This is strongly discouraged and should be avoided. Please check
         the required packages, and use names with either `python2-` or
         `python3-` prefix if available.
-    """).strip().format(result.item) in artifact.strip()
+    """).strip().format(result.item, expected_requires) in artifact.strip()

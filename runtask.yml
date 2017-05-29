@@ -20,7 +20,7 @@ actions:
         action: download
         koji_build: ${koji_build}
         arch: ['all']
-        src: False
+        src: True
 
     - name: check each rpm for python dependencies
       python:

@@ -3,7 +3,7 @@ import collections
 from .common import log, write_to_artifact
 from .naming_scheme import is_unversioned
 
-MESSAGE = """These RPMs use `python-` prefix without Python version in Requires:
+MESSAGE = """These RPMs use `python-` prefix without Python version in *Requires:
 {}
 This is strongly discouraged and should be avoided. Please check
 the required packages, and use names with either `python2-` or
