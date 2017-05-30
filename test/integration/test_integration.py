@@ -161,9 +161,9 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
     with open(result.artifact) as f:
         artifact = f.read()
 
-    expected_requires = (
-        'python-beautifulsoup4, python-lxml, python-psutil, '
-        'python-pygments, python-sphinx, rpm-python')
+    print(artifact)
+
+    expected_requires = 'python-psutil (python2-psutil is available)'
 
     assert dedent("""
         These RPMs use `python-` prefix without Python version in *Requires:
@@ -172,5 +172,5 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
 
         This is strongly discouraged and should be avoided. Please check
         the required packages, and use names with either `python2-` or
-        `python3-` prefix if available.
+        `python3-` prefix.
     """).strip().format(result.item, expected_requires) in artifact.strip()

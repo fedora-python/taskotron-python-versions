@@ -21,7 +21,8 @@ You can run the checks locally with
 install it (you can
 follow the
 `Quickstart <https://qa.fedoraproject.org/docs/libtaskotron/latest/quickstart.html>`__).
-You'll also need the ``rpm`` Python 2 module (``python2-rpm``).
+You'll also need the ``rpm`` and ``dnf`` Python 2 modules (``python2-rpm``,
+``python2-dnf``).
 Note that Taskotron unfortunately runs on Python 2, but the code in
 this repository is Python 3 compatible as well.
 
@@ -45,7 +46,7 @@ Tests
 There are also automatic tests available. You can run them using
 `tox <https://tox.readthedocs.io/>`__.
 You'll need the above mentioned dependencies and ``python3-rpm``
-installed as well.
+and ``python3-dnf`` installed as well.
 
 .. code:: console
 

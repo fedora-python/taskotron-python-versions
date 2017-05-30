@@ -1,5 +1,7 @@
 import collections
 
+import dnf
+
 from .common import log, write_to_artifact
 from .naming_scheme import is_unversioned
 
@@ -7,12 +9,83 @@ MESSAGE = """These RPMs use `python-` prefix without Python version in *Requires
 {}
 This is strongly discouraged and should be avoided. Please check
 the required packages, and use names with either `python2-` or
-`python3-` prefix if available.
+`python3-` prefix.
 """
 
-# Should be a link to guidelines when
-# https://pagure.io/packaging-committee/issue/686 accepted.
-INFO_URL = ''
+# TODO: Should be a link to guidelines when considered.
+INFO_URL = 'https://pagure.io/packaging-committee/issue/686'
+
+
+def get_dnf_query(release):
+    """Create dnf repoquery for the release."""
+    base = dnf.Base()
+    base.conf.substitutions['releasever'] = release
+    base.read_all_repos()
+
+    # Better to have a false PASSED than false FAILED
+    # So do NOT consider packages in updates-testing
+    repos = base.repos.get_matching('*-testing')
+    repos.disable()
+
+    try:
+        base.fill_sack(load_system_repo=False, load_available_repos=True)
+    except dnf.exceptions.RepoError as err:
+        if release == 'rawhide':
+            log.error('Failed to load dnf repos: {}'.format(err))
+            return
+        log.warning(
+            'Failed to repoquery for {}, assuming rawhide'.format(release))
+        return get_dnf_query('rawhide')
+
+    return base.sack.query()
+
+
+def get_versioned_name(require, repoquery):
+    """Given the require with not versioned Python prefix,
+    find one with the versioned Python prefix
+    using the provided repoquery.
+
+    Return: (str) Available versioned name or None
+    """
+    if not repoquery:
+        return
+    log.debug('Checking requirement {}'.format(require))
+
+    query = repoquery.filter(provides=require)
+    packages = query.run()
+
+    for pkg in packages:
+        if not is_unversioned(pkg.name):
+            log.debug(
+                'Found a name with a versioned '
+                'Python prefix: {}'.format(pkg.name))
+            return pkg.name
+
+
+def check_requires_naming_scheme(package, repoquery):
+    """Given the package, check the naming scheme of its
+    requirements and return a list of those misnamed.
+
+    Return: (set) Misnamed requirements
+    """
+    misnamed_requires = set()
+
+    for name in package.require_names:
+        name = name.decode()
+
+        if is_unversioned(name):
+            versioned = get_versioned_name(name, repoquery)
+
+            if versioned:
+                log.error(
+                    '{} package requires {}, while {} is '
+                    'available'.format(package.filename, name, versioned))
+                misnamed_requires.add('{} ({} is available)'.format(
+                    name, versioned))
+            else:
+                log.debug('A versioned name for {} not found'.format(name))
+
+    return misnamed_requires
 
 
 def task_requires_naming_scheme(packages, koji_build, artifact):
@@ -23,24 +96,24 @@ def task_requires_naming_scheme(packages, koji_build, artifact):
     # to make the above functions testable anyway
     from libtaskotron import check
 
+    fedora_release = koji_build.split('fc')[-1]
+    repoquery = get_dnf_query(fedora_release)
+
     outcome = 'PASSED'
     misnamed_requires = collections.defaultdict(set)
 
     for package in packages:
         log.debug('Checking requires of {}'.format(package.filename))
-        for name in package.require_names:
-            name = name.decode()
-            if is_unversioned(name):
-                log.error(
-                    '{} package uses `python-` prefix without version in '
-                    'the requirement name {}'.format(package.filename, name))
-                misnamed_requires[package.nvr].add(name)
-                outcome = 'FAILED'
+
+        requires = check_requires_naming_scheme(package, repoquery)
+        if requires:
+            misnamed_requires[package.nvr].update(requires)
+            outcome = 'FAILED'
 
     message_rpms = ''
-    for pakcage_name, requires in misnamed_requires.items():
+    for package_name, requires in misnamed_requires.items():
         message_rpms += '{}\n * Requires: {}\n'.format(
-            pakcage_name, ', '.join(sorted(requires)))
+            package_name, ', '.join(sorted(requires)))
 
     detail = check.CheckDetail(
         checkname='python-versions.requires_naming_scheme',

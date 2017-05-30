@@ -13,6 +13,7 @@ input:
 environment:
     rpm:
         - rpm-python
+        - python2-dnf
 
 actions:
     - name: download rpms from koji
