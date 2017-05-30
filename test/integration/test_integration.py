@@ -105,7 +105,8 @@ _twine = fixtures_factory('python-twine-1.8.1-3.fc26')
 twine = fixtures_factory('_twine')
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh'))
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
+                                     'copr', 'epub', 'twine'))
 def test_two_three_passed(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -117,15 +118,20 @@ def test_two_three_failed(tracer):
     assert tracer['python-versions.two_three'].outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('tracer', 'copr'))
+@pytest.mark.parametrize('results', ('tracer', 'copr', 'admesh'))
 def test_one_failed_result_is_total_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions'].outcome == 'FAILED'
 
 
-def test_artifact_is_the_same(tracer):
-    assert (tracer['python-versions'].artifact ==
-            tracer['python-versions.two_three'].artifact)
+@pytest.mark.parametrize(('results', 'task'),
+                         (('tracer', 'two_three'),
+                          ('copr', 'naming_scheme'),
+                          ('admesh', 'requires_naming_scheme')))
+def test_artifact_is_the_same(results, task, request):
+    results = request.getfixturevalue(results)
+    assert (results['python-versions'].artifact ==
+            results['python-versions.' + task].artifact)
 
 
 def test_artifact_contains_two_three_and_looks_as_expected(tracer):
@@ -141,14 +147,16 @@ def test_artifact_contains_two_three_and_looks_as_expected(tracer):
     ''').strip().format(result.item) in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'epub'))
+@pytest.mark.parametrize('results', ('eric', 'epub', 'twine'))
 def test_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions.naming_scheme'].outcome == 'PASSED'
 
 
-def test_naming_scheme_failed(copr):
-    assert copr['python-versions.naming_scheme'].outcome == 'FAILED'
+@pytest.mark.parametrize('results', ('copr', 'six', 'admesh'))
+def test_naming_scheme_failed(results, request):
+    results = request.getfixturevalue(results)
+    assert results['python-versions.naming_scheme'].outcome == 'FAILED'
 
 
 def test_artifact_contains_naming_scheme_and_looks_as_expected(copr):
@@ -162,15 +170,17 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(copr):
     """).strip().format(result.item) in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'twine'))
+@pytest.mark.parametrize('results', ('eric', 'twine', 'six'))
 def test_requires_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['python-versions.requires_naming_scheme']
     assert task_result.outcome == 'PASSED'
 
 
-def test_requires_naming_scheme_failed(copr):
-    task_result = copr['python-versions.requires_naming_scheme']
+@pytest.mark.parametrize('results', ('admesh', 'copr'))
+def test_requires_naming_scheme_failed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.requires_naming_scheme']
     assert task_result.outcome == 'FAILED'
 
 
