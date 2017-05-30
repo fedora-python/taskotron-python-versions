@@ -46,6 +46,7 @@ def run_task(nevr, *, reterr=False):
     )
     _, err = proc.communicate()
     if proc.returncode != 0:
+        print(err, file=sys.stderr)  # always print stderr in this case
         raise RuntimeError('runtask exited with {}'.format(proc.returncode))
     results = parse_results(err)
 
