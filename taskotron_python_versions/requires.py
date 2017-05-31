@@ -16,31 +16,47 @@ the required packages, and use names with either `python2-` or
 INFO_URL = 'https://pagure.io/packaging-committee/issue/686'
 
 
+def add_repo(base, reponame, repourl):
+    try:
+        # Fedora 26
+        repo = dnf.repo.Repo(reponame, parent_conf=base.conf)
+    except TypeError:
+        # Fedora 25
+        repo = dnf.repo.Repo(reponame, cachedir=base.conf.cachedir)
+
+    metalink = ('https://mirrors.fedoraproject.org/'
+                'metalink?repo={}&arch=$basearch'.format(repourl))
+    repo.metalink = dnf.conf.parser.substitute(metalink,
+                                               base.conf.substitutions)
+
+    base.repos.add(repo)
+    repo.skip_if_unavailable = False
+    repo.enable()
+    repo.load()
+    return repo
+
+
 def get_dnf_query(release):
     """Create dnf repoquery for the release."""
     log.debug('Creating repoquery for {}'.format(release))
     base = dnf.Base()
     base.conf.substitutions['releasever'] = release
-    base.read_all_repos()
 
-    # Disable all the repos except fedora and updates
-    #
+    # Only add fedora and updates
     # Better to have a false PASSED than false FAILED,
-    # so we do NOT enable updates-testing
-    base.repos.get_matching('*').disable()
-    base.repos.get_matching('fedora').enable()
-    base.repos.get_matching('updates').enable()
-
+    # so we do NOT add updates-testing
     try:
-        base.fill_sack(load_system_repo=False, load_available_repos=True)
+        add_repo(base, 'fedora', 'fedora-$releasever')
+        add_repo(base, 'updates', 'updates-released-f$releasever')
     except dnf.exceptions.RepoError as err:
         if release == 'rawhide':
-            log.error('Failed to load dnf repos: {}'.format(err))
+            log.error('{} (rawhide)'.format(err))
             return
         log.warning(
-            'Failed to repoquery for {}, assuming rawhide'.format(release))
+            'Failed to load repos for {}, assuming rawhide'.format(release))
         return get_dnf_query('rawhide')
 
+    base.fill_sack(load_system_repo=False, load_available_repos=True)
     return base.sack.query()
 
 
