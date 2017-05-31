@@ -105,11 +105,20 @@ _twine = fixtures_factory('python-twine-1.8.1-3.fc26')
 twine = fixtures_factory('_twine')
 
 
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
+                                     'copr', 'epub', 'twine'))
+def test_number_of_results(results, request):
+    # getting a fixture by name
+    # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
+    results = request.getfixturevalue(results)
+
+    # Each time a new check is added, this number needs to be increased
+    assert len(results) == 4
+
+
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
                                      'copr', 'epub', 'twine'))
 def test_two_three_passed(results, request):
-    # getting a fixture by name
-    # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
     results = request.getfixturevalue(results)
     assert results['python-versions.two_three'].outcome == 'PASSED'
 
