@@ -1,0 +1,84 @@
+from collections import namedtuple
+
+import pytest
+
+from taskotron_python_versions.requires import (
+    get_versioned_name,
+    check_requires_naming_scheme,
+)
+
+from .common import gpkg
+
+
+Package = namedtuple('Package', 'name')
+
+
+class QueryStub(object):
+
+    """Stub object for dnf repoquery."""
+
+    def __init__(self, data):
+        """Provide data as {<provide_name>: [<package_name>, ..], ..}, where
+            `provide_name`: (str) name expected to be passed to filter method
+            `package_name`: (str) package name providing it in query result
+        """
+        self.data = data
+        self.provides = None
+
+    def filter(self, provides):
+        self.provides = provides
+        return self
+
+    def run(self):
+        """Return repoquery result for the `provides` specified in filter.
+        With each call, the result will be removed from provided data.
+
+        Raises: ValueError if there is no data for the `provides` in filter.
+        """
+        if self.provides not in self.data:
+            raise ValueError('Running repoquery on {} is not expected'.format(
+                self.provides))
+        package_names = self.data.pop(self.provides)
+        return [Package(name=name) for name in package_names]
+
+
+@pytest.mark.parametrize(('require', 'repoquery', 'expected'), (
+    ('python-foo', None, None),
+    ('python-foo', QueryStub({'python-foo': []}), None),
+    ('python-foo', QueryStub({'python-foo': ['python-foo']}), None),
+    ('python-foo', QueryStub({'python-foo': ['python2-foo']}), 'python2-foo'),
+))
+def test_get_versioned_name(require, repoquery, expected):
+    assert get_versioned_name(require, repoquery) == expected
+
+
+@pytest.mark.parametrize(('pkgglob', 'repoquery'), (
+    ('python2-geoip2*', QueryStub({})),
+    ('pyserial*', QueryStub({})),
+    ('python-peak-rules*', QueryStub({
+        'python-decoratortools': ['python-decoratortools'],
+        'python-peak-util-addons': ['python-peak-util-addons'],
+        'python-peak-util-assembler': ['python-peak-util-assembler'],
+        'python-peak-util-extremes': ['python-peak-util-extremes'],
+    })),
+))
+def test_package_requires_are_correct(pkgglob, repoquery,):
+    assert not check_requires_naming_scheme(gpkg(pkgglob), repoquery)
+    # Make sure all items from repoquery.data were popped out.
+    assert not repoquery.data, (
+        'Repoquery was not called for: {}'.format(repoquery.data))
+
+
+@pytest.mark.parametrize(('pkgglob', 'repoquery', 'expected'), (
+    ('tracer*', QueryStub({
+        'python-beautifulsoup4': ['python-beautifulsoup4'],
+        'python-psutil': ['python2-psutil'],
+        'rpm-python': ['rpm-python', 'python2-rpm']}),
+     {'python-psutil (python2-psutil is available)',
+      'rpm-python (python2-rpm is available)'}),
+))
+def test_package_requires_are_misnamed(pkgglob, repoquery, expected):
+    assert check_requires_naming_scheme(gpkg(pkgglob), repoquery) == expected
+    # Make sure all items from repoquery.data were popped out.
+    assert not repoquery.data, (
+        'Repoquery was not called for: {}'.format(repoquery.data))
