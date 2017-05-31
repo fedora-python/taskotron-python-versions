@@ -57,6 +57,10 @@ class Package(object):
                 raise PackageException('{}: {}'.format(self.filename, err))
 
     @property
+    def is_srpm(self):
+        return self.filename.endswith('.src.rpm')
+
+    @property
     def name(self):
         """Package name as a string."""
         return self.hdr[rpm.RPMTAG_NAME].decode()

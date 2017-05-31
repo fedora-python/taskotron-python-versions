@@ -37,7 +37,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
             except PackageException as err:
                 log.error('{}: {}'.format(file_, err))
             else:
-                if file_.endswith('.src.rpm'):
+                if package.is_srpm:
                     srpm_packages.append(package)
                 else:
                     packages.append(package)
@@ -54,7 +54,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     details.append(task_two_three(packages, koji_build, artifact))
     details.append(task_naming_scheme(packages, koji_build, artifact))
     details.append(task_requires_naming_scheme(
-        packages + srpm_packages, koji_build, artifact))
+        srpm_packages + packages, koji_build, artifact))
 
     # finally, the main detail with overall results
     outcome = 'PASSED'

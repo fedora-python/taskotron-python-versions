@@ -1,5 +1,3 @@
-import collections
-
 import dnf
 
 from .common import log, write_to_artifact
@@ -120,20 +118,24 @@ def task_requires_naming_scheme(packages, koji_build, artifact):
     repoquery = get_dnf_query(fedora_release)
 
     outcome = 'PASSED'
-    misnamed_requires = collections.defaultdict(set)
+
+    problem_rpms = set()
+    message_rpms = ''
 
     for package in packages:
         log.debug('Checking requires of {}'.format(package.filename))
 
         requires = check_requires_naming_scheme(package, repoquery)
         if requires:
-            misnamed_requires[package.nvr].update(requires)
             outcome = 'FAILED'
+            problem_rpms.add(package.nvr)
 
-    message_rpms = ''
-    for package_name, requires in misnamed_requires.items():
-        message_rpms += '{}\n * Requires: {}\n'.format(
-            package_name, ', '.join(sorted(requires)))
+            message = '\n{} {}Requires:\n * {}\n'.format(
+                package.nvr,
+                'Build' if package.is_srpm else '',
+                '\n * '.join(sorted(requires)))
+            if message not in message_rpms:
+                message_rpms += message
 
     detail = check.CheckDetail(
         checkname='python-versions.requires_naming_scheme',
@@ -141,10 +143,10 @@ def task_requires_naming_scheme(packages, koji_build, artifact):
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
 
-    if misnamed_requires:
+    if problem_rpms:
         detail.artifact = artifact
         write_to_artifact(artifact, MESSAGE.format(message_rpms), INFO_URL)
-        problems = 'Problematic RPMs:\n' + ', '.join(misnamed_requires.keys())
+        problems = 'Problematic RPMs:\n' + ', '.join(problem_rpms)
     else:
         problems = 'No problems found.'
 

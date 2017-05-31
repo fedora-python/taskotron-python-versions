@@ -201,14 +201,16 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
 
     print(artifact)
 
-    expected_requires = 'python-psutil (python2-psutil is available)'
-
     assert dedent("""
         These RPMs use `python-` prefix without Python version in *Requires:
-        {}
-         * Requires: {}
+
+        tracer-0.6.9-1.fc23 BuildRequires:
+         * python-psutil (python2-psutil is available)
+
+        tracer-0.6.9-1.fc23 Requires:
+         * python-psutil (python2-psutil is available)
 
         This is strongly discouraged and should be avoided. Please check
         the required packages, and use names with either `python2-` or
         `python3-` prefix.
-    """).strip().format(result.item, expected_requires) in artifact.strip()
+    """).strip() in artifact.strip()
