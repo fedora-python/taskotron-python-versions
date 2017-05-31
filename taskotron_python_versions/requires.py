@@ -18,14 +18,18 @@ INFO_URL = 'https://pagure.io/packaging-committee/issue/686'
 
 def get_dnf_query(release):
     """Create dnf repoquery for the release."""
+    log.debug('Creating repoquery for {}'.format(release))
     base = dnf.Base()
     base.conf.substitutions['releasever'] = release
     base.read_all_repos()
 
-    # Better to have a false PASSED than false FAILED
-    # So do NOT consider packages in updates-testing
-    repos = base.repos.get_matching('*-testing')
-    repos.disable()
+    # Disable all the repos except fedora and updates
+    #
+    # Better to have a false PASSED than false FAILED,
+    # so we do NOT enable updates-testing
+    base.repos.get_matching('*').disable()
+    base.repos.get_matching('fedora').enable()
+    base.repos.get_matching('updates').enable()
 
     try:
         base.fill_sack(load_system_repo=False, load_available_repos=True)
