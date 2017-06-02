@@ -23,27 +23,21 @@ class QueryStub(object):
             `package_name`: (str) package name providing it in query result
         """
         self.data = data
-        self.provides = None
 
-    def filter(self, provides):
-        self.provides = provides
-        return self
-
-    def run(self):
+    def get_packages_by(self, provides):
         """Return repoquery result for the `provides` specified in filter.
         With each call, the result will be removed from provided data.
 
         Raises: ValueError if there is no data for the `provides` in filter.
         """
-        if self.provides not in self.data:
+        if provides not in self.data:
             raise ValueError('Running repoquery on {} is not expected'.format(
-                self.provides))
-        package_names = self.data.pop(self.provides)
+                provides))
+        package_names = self.data.pop(provides)
         return [Package(name=name) for name in package_names]
 
 
 @pytest.mark.parametrize(('require', 'repoquery', 'expected'), (
-    ('python-foo', None, None),
     ('python-foo', QueryStub({'python-foo': []}), None),
     ('python-foo', QueryStub({'python-foo': ['python-foo']}), None),
     ('python-foo', QueryStub({'python-foo': ['python2-foo']}), 'python2-foo'),

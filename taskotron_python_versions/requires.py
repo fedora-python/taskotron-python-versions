@@ -14,48 +14,76 @@ the required packages, and use names with either `python2-` or
 INFO_URL = 'https://pagure.io/packaging-committee/issue/686'
 
 
-def add_repo(base, reponame, repourl):
-    try:
-        # Fedora 26
-        repo = dnf.repo.Repo(reponame, parent_conf=base.conf)
-    except TypeError:
-        # Fedora 25
-        repo = dnf.repo.Repo(reponame, cachedir=base.conf.cachedir)
+class DNFQuery(object):
 
-    metalink = ('https://mirrors.fedoraproject.org/'
-                'metalink?repo={}&arch=$basearch'.format(repourl))
-    repo.metalink = dnf.conf.parser.substitute(metalink,
-                                               base.conf.substitutions)
+    """DNF Qeuery API.
 
-    base.repos.add(repo)
-    repo.skip_if_unavailable = False
-    repo.enable()
-    repo.load()
-    return repo
+    Initializes the query only when needed
+    and saves it for reuse.
+    """
 
+    def __init__(self, release):
+        self.release = release
+        self._query = None
 
-def get_dnf_query(release):
-    """Create dnf repoquery for the release."""
-    log.debug('Creating repoquery for {}'.format(release))
-    base = dnf.Base()
-    base.conf.substitutions['releasever'] = release
+    @property
+    def query(self):
+        if not self._query:
+            self._query = self.get_dnf_query()
+        return self._query
 
-    # Only add fedora and updates
-    # Better to have a false PASSED than false FAILED,
-    # so we do NOT add updates-testing
-    try:
-        add_repo(base, 'fedora', 'fedora-$releasever')
-        add_repo(base, 'updates', 'updates-released-f$releasever')
-    except dnf.exceptions.RepoError as err:
-        if release == 'rawhide':
-            log.error('{} (rawhide)'.format(err))
-            return
-        log.warning(
-            'Failed to load repos for {}, assuming rawhide'.format(release))
-        return get_dnf_query('rawhide')
+    def get_packages_by(self, **kwargs):
+        """Return the result of the DNF query execution,
+        filtered by kwargs.
+        """
+        try:
+            return self.query.filter(**kwargs).run()
+        except AttributeError:
+            return []
 
-    base.fill_sack(load_system_repo=False, load_available_repos=True)
-    return base.sack.query()
+    @staticmethod
+    def add_repo(base, reponame, repourl):
+        try:
+            # Fedora 26
+            repo = dnf.repo.Repo(reponame, parent_conf=base.conf)
+        except TypeError:
+            # Fedora 25
+            repo = dnf.repo.Repo(reponame, cachedir=base.conf.cachedir)
+
+        metalink = ('https://mirrors.fedoraproject.org/'
+                    'metalink?repo={}&arch=$basearch'.format(repourl))
+        repo.metalink = dnf.conf.parser.substitute(metalink,
+                                                   base.conf.substitutions)
+
+        base.repos.add(repo)
+        repo.skip_if_unavailable = False
+        repo.enable()
+        repo.load()
+        return repo
+
+    def get_dnf_query(self):
+        """Create dnf repoquery for the release."""
+        log.debug('Creating repoquery for {}'.format(self.release))
+        base = dnf.Base()
+        base.conf.substitutions['releasever'] = self.release
+
+        # Only add fedora and updates
+        # Better to have a false PASSED than false FAILED,
+        # so we do NOT add updates-testing
+        try:
+            self.add_repo(base, 'fedora', 'fedora-$releasever')
+            self.add_repo(base, 'updates', 'updates-released-f$releasever')
+        except dnf.exceptions.RepoError as err:
+            if self.release == 'rawhide':
+                log.error('{} (rawhide)'.format(err))
+                return
+            log.warning('Failed to load repos for {}, '
+                        'assuming rawhide'.format(self.release))
+            self.release = 'rawhide'
+            return self.get_dnf_query()
+
+        base.fill_sack(load_system_repo=False, load_available_repos=True)
+        return base.sack.query()
 
 
 def get_versioned_name(require, repoquery):
@@ -65,13 +93,9 @@ def get_versioned_name(require, repoquery):
 
     Return: (str) Available versioned name or None
     """
-    if not repoquery:
-        return
     log.debug('Checking requirement {}'.format(require))
 
-    query = repoquery.filter(provides=require)
-    packages = query.run()
-
+    packages = repoquery.get_packages_by(provides=require)
     for pkg in packages:
         if not is_unversioned(pkg.name):
             log.debug(
@@ -115,7 +139,7 @@ def task_requires_naming_scheme(packages, koji_build, artifact):
     from libtaskotron import check
 
     fedora_release = koji_build.split('fc')[-1]
-    repoquery = get_dnf_query(fedora_release)
+    repoquery = DNFQuery(fedora_release)
 
     outcome = 'PASSED'
 
