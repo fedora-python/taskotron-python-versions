@@ -80,4 +80,5 @@ class Package(object):
 
     @property
     def files(self):
-        return self.hdr[rpm.RPMTAG_FILENAMES]
+        """Package file names as a list of strings."""
+        return [name.decode() for name in self.hdr[rpm.RPMTAG_FILENAMES]]

@@ -110,17 +110,20 @@ yum = fixtures_factory('_yum')
 _vdirsyncer = fixtures_factory('vdirsyncer-0.16.0-1.fc27')
 vdirsyncer = fixtures_factory('_vdirsyncer')
 
+_docutils = fixtures_factory('python-docutils-0.13.1-4.fc26')
+docutils = fixtures_factory('_docutils')
+
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
                                      'copr', 'epub', 'twine', 'yum',
-                                     'vdirsyncer'))
+                                     'vdirsyncer', 'docutils'))
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
     results = request.getfixturevalue(results)
 
     # Each time a new check is added, this number needs to be increased
-    assert len(results) == 4
+    assert len(results) == 5
 
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
@@ -231,3 +234,49 @@ def test_requires_naming_scheme_contains_python(yum):
     print(artifact)
 
     assert 'python (python2 is available)' in artifact.strip()
+
+
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
+                                     'copr', 'epub', 'twine'))
+def test_executables_passed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.executables']
+    assert task_result.outcome == 'PASSED'
+
+
+@pytest.mark.parametrize('results', ('docutils',))
+def test_executables_failed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.executables']
+    assert task_result.outcome == 'FAILED'
+
+
+def test_artifact_contains_executables_and_looks_as_expected(
+        docutils):
+    result = docutils['python-versions.executables']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert dedent("""
+        The following executables are available only in Python 2 subpackages:
+
+        python2-docutils-0.13.1-4.fc26:
+         * /usr/bin/rst2html
+         * /usr/bin/rst2html5
+         * /usr/bin/rst2latex
+         * /usr/bin/rst2man
+         * /usr/bin/rst2odt
+         * /usr/bin/rst2odt_prepstyles
+         * /usr/bin/rst2pseudoxml
+         * /usr/bin/rst2s5
+         * /usr/bin/rst2xetex
+         * /usr/bin/rst2xml
+         * /usr/bin/rstpep2html
+
+        If the functionality of those executables is the same regardless of the
+        used Python version, you should switch to Python 3.
+        In case the Python version matter, also create an additional
+        executables for Python 3.
+    """).strip() in artifact.strip()
