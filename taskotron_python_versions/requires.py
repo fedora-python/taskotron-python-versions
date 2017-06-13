@@ -10,8 +10,8 @@ the required packages, and use names with either `python2-` or
 `python3-` prefix.
 """
 
-# TODO: Should be a link to guidelines when considered.
-INFO_URL = 'https://pagure.io/packaging-committee/issue/686'
+
+INFO_URL = 'https://fedoraproject.org/wiki/Packaging:Python#Dependencies'
 
 
 class DNFQuery(object):
