@@ -10,7 +10,7 @@ with open('README.rst') as readme:
 
 setup(
     name='taskotron-python-versions',
-    version='0.1.dev1',
+    version='0.1.dev2',
     description=description,
     long_description=long_description,
     keywords='taskotron fedora python rpm',
