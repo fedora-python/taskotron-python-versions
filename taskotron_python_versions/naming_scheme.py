@@ -35,7 +35,8 @@ def is_unversioned(name):
     return (
         name.startswith('python-') or
         '-python-' in name or
-        name.endswith('-python'))
+        name.endswith('-python') or
+        name == 'python')
 
 
 def check_naming_policy(pkg, name_by_version):

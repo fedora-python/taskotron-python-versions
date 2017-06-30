@@ -104,9 +104,12 @@ epub = fixtures_factory('_epub')
 _twine = fixtures_factory('python-twine-1.8.1-3.fc26')
 twine = fixtures_factory('_twine')
 
+_yum = fixtures_factory('yum-3.4.3-512.fc26')
+yum = fixtures_factory('_yum')
+
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine'))
+                                     'copr', 'epub', 'twine', 'yum'))
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -214,3 +217,13 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
         the required packages, and use names with either `python2-` or
         `python3-` prefix.
     """).strip() in artifact.strip()
+
+
+def test_requires_naming_scheme_contains_python(yum):
+    result = yum['python-versions.requires_naming_scheme']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert 'python (python2 is available)' in artifact.strip()

@@ -41,6 +41,7 @@ class QueryStub(object):
     ('python-foo', QueryStub({'python-foo': []}), None),
     ('python-foo', QueryStub({'python-foo': ['python-foo']}), None),
     ('python-foo', QueryStub({'python-foo': ['python2-foo']}), 'python2-foo'),
+    ('python', QueryStub({'python': ['python2']}), 'python2'),
 ))
 def test_get_versioned_name(require, repoquery, expected):
     assert get_versioned_name(require, repoquery) == expected
@@ -65,10 +66,19 @@ def test_package_requires_are_correct(pkgglob, repoquery,):
 
 @pytest.mark.parametrize(('pkgglob', 'repoquery', 'expected'), (
     ('tracer*', QueryStub({
+        'python': ['python'],
         'python-beautifulsoup4': ['python-beautifulsoup4'],
         'python-psutil': ['python2-psutil'],
         'rpm-python': ['rpm-python', 'python2-rpm']}),
      {'python-psutil (python2-psutil is available)',
+      'rpm-python (python2-rpm is available)'}),
+    ('yum*', QueryStub({
+        'python': ['python2'],
+        'python-iniparse': ['python2-iniparse'],
+        'python-urlgrabber': ['python-urlgrabber'],
+        'rpm-python': ['rpm-python', 'python2-rpm']}),
+     {'python (python2 is available)',
+      'python-iniparse (python2-iniparse is available)',
       'rpm-python (python2-rpm is available)'}),
 ))
 def test_package_requires_are_misnamed(pkgglob, repoquery, expected):
