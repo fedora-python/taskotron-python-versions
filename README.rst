@@ -53,7 +53,7 @@ and ``python3-dnf`` installed as well.
     $ tox
 
 Automatic tests also happen on `Tarvis
-CI <https://travis-ci.org/fedora-python/task-python-versions/>`__.
+CI <https://travis-ci.org/fedora-python/taskotron-python-versions/>`__.
 Since Travis CI runs on Ubuntu
 and Ubuntu lacks the RPM Python bindings and Taskotron,
 `Docker <https://docs.travis-ci.com/user/docker/>`__ is used
