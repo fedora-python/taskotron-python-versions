@@ -107,9 +107,13 @@ twine = fixtures_factory('_twine')
 _yum = fixtures_factory('yum-3.4.3-512.fc26')
 yum = fixtures_factory('_yum')
 
+_vdirsyncer = fixtures_factory('vdirsyncer-0.16.0-1.fc27')
+vdirsyncer = fixtures_factory('_vdirsyncer')
+
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine', 'yum'))
+                                     'copr', 'epub', 'twine', 'yum',
+                                     'vdirsyncer'))
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -159,7 +163,7 @@ def test_artifact_contains_two_three_and_looks_as_expected(tracer):
     ''').strip().format(result.item) in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'epub', 'twine'))
+@pytest.mark.parametrize('results', ('eric', 'epub', 'twine', 'vdirsyncer'))
 def test_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions.naming_scheme'].outcome == 'PASSED'

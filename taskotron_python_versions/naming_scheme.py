@@ -73,9 +73,9 @@ def task_naming_scheme(packages, koji_build, artifact):
 
     for package in packages:
         log.debug('Checking {}'.format(package.filename))
-        if not package.py_versions:
-            log.info('{} does not require Python, skipping name check'.format(
-                package.filename))
+        if 2 not in package.py_versions:
+            log.info('{} does not require Python 2, '
+                     'skipping name check'.format(package.filename))
             continue
 
         misnamed = check_naming_policy(package, name_by_version)
