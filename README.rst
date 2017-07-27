@@ -11,7 +11,9 @@ Currently the following checks are available:
 
 -  Whether the package name follows the Python package naming scheme;
 
--  Whether the package uses versioned Python prefix in requirements' names.
+-  Whether the package uses versioned Python prefix in requirements' names;
+
+-  Whether only Python 2 version of the package contains the executables.
 
 Running
 -------
