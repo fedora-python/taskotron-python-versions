@@ -46,6 +46,7 @@ class Package(object):
         the RPM package header containing its metadata.
         """
         self.filename = os.path.basename(path)
+        self.path = path
         # To be populated in the first check.
         self.py_versions = None
 

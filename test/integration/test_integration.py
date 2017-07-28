@@ -123,7 +123,7 @@ def test_number_of_results(results, request):
     results = request.getfixturevalue(results)
 
     # Each time a new check is added, this number needs to be increased
-    assert len(results) == 5
+    assert len(results) == 6
 
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
@@ -280,3 +280,34 @@ def test_artifact_contains_executables_and_looks_as_expected(
         In case the Python version matter, also create an additional
         executables for Python 3.
     """).strip() in artifact.strip()
+
+
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
+                                     'copr', 'epub', 'twine'))
+def test_unvesioned_shebangs_passed(results, request):
+    results = request.getfixturevalue(results)
+    assert results['python-versions.unversioned_shebangs'].outcome == 'PASSED'
+
+
+@pytest.mark.parametrize('results', ('yum', 'tracer'))
+def test_unvesioned_shebangs_failed(results, request):
+    results = request.getfixturevalue(results)
+    assert results['python-versions.unversioned_shebangs'].outcome == 'FAILED'
+
+
+def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
+        tracer):
+    result = tracer['python-versions.unversioned_shebangs']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert dedent("""
+        These RPMs contain problematic shebang in some of the scripts:
+        tracer-0.6.9-1.fc23
+         * Scripts containing `#!/usr/bin/python` shebang:
+           /usr/bin/tracer
+        This is discouraged and should be avoided. Please check the shebangs
+        and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
+   """).strip() in artifact.strip()

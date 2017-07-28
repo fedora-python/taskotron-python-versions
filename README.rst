@@ -15,6 +15,8 @@ Currently the following checks are available:
 
 -  Whether only Python 2 version of the package contains the executables.
 
+-  Whether the package uses versioned shebangs in its executables.
+
 Running
 -------
 
@@ -23,8 +25,8 @@ You can run the checks locally with
 install it (you can
 follow the
 `Quickstart <https://qa.fedoraproject.org/docs/libtaskotron/latest/quickstart.html>`__).
-You'll also need the ``rpm`` and ``dnf`` Python 2 modules (``python2-rpm``,
-``python2-dnf``).
+You'll also need the ``rpm``, ``dnf`` and ``libarchive-c`` Python 2 modules
+(``python2-rpm``, ``python2-dnf``, ``python2-libarchive-c``).
 Note that Taskotron unfortunately runs on Python 2, but the code in
 this repository is Python 3 compatible as well.
 
