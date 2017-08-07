@@ -58,6 +58,7 @@ def test_shebang_to_require(shebang, expected):
        ('/usr/lib/python3.6/site-packages/'
         'django/conf/project_template/manage.py-tpl')}}),
     ('pyserial*', {}),
+    ('nodejs-semver*', {}),
 ))
 def test_get_scripts_summary(glob, expected):
     assert get_scripts_summary(gpkg(glob)) == expected

@@ -113,10 +113,13 @@ vdirsyncer = fixtures_factory('_vdirsyncer')
 _docutils = fixtures_factory('python-docutils-0.13.1-4.fc26')
 docutils = fixtures_factory('_docutils')
 
+_nodejs = fixtures_factory('nodejs-semver-5.1.1-2.fc26')
+nodejs = fixtures_factory('_nodejs')
+
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
                                      'copr', 'epub', 'twine', 'yum',
-                                     'vdirsyncer', 'docutils'))
+                                     'vdirsyncer', 'docutils', 'nodejs'))
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -282,8 +285,8 @@ def test_artifact_contains_executables_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
-                                     'copr', 'epub', 'twine'))
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'copr',
+                                     'epub', 'twine', 'nodejs'))
 def test_unvesioned_shebangs_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions.unversioned_shebangs'].outcome == 'PASSED'

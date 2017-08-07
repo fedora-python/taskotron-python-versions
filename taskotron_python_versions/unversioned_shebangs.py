@@ -52,8 +52,9 @@ def get_scripts_summary(package):
 
     for shebang in FORBIDDEN_SHEBANGS:
         if shebang_to_require(shebang) in package.require_names:
-            scripts_summary[shebang] = get_problematic_files(
-                package.path, shebang)
+            problematic = get_problematic_files(package.path, shebang)
+            if problematic:
+                scripts_summary[shebang] = problematic
     return scripts_summary
 
 
