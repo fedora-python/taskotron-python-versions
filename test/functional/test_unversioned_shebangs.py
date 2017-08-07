@@ -40,13 +40,15 @@ def test_get_problematic_files(archive, query, expected):
     assert get_problematic_files(gpkg_path(archive), query) == expected
 
 
-@pytest.mark.parametrize(('shebang', 'expected'), (
-    ("#!/foo", b"/foo"),
-    ("#!/usr/bin/python", b"/usr/bin/python"),
-    ("#!/usr/bin/env python", b"/usr/bin/env"),
+@pytest.mark.parametrize(('shebang', 'use_bytes', 'expected'), (
+    ("#!/foo", True, b"/foo"),
+    ("#!/usr/bin/python", True, b"/usr/bin/python"),
+    ("#!/usr/bin/env python", True, b"/usr/bin/env"),
+    ("#!/usr/bin/python", False, "/usr/bin/python"),
+    ("#!/usr/bin/env python", False, "/usr/bin/env"),
 ))
-def test_shebang_to_require(shebang, expected):
-    assert shebang_to_require(shebang) == expected
+def test_shebang_to_require(shebang, use_bytes, expected):
+    assert shebang_to_require(shebang, use_bytes) == expected
 
 
 @pytest.mark.parametrize(('glob', 'expected'), (

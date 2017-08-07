@@ -38,9 +38,15 @@ def get_problematic_files(archive, query):
     return problematic
 
 
-def shebang_to_require(shebang):
-    """Convert shebang to the format of requirement."""
-    return shebang.split()[0][2:].encode()
+def shebang_to_require(shebang, use_bytes=True):
+    """Convert shebang to the format of requirement.
+    If the use_bytes argument is set to False, executable path
+    is returned as a string instead of the default bytes type."""
+    executable_path = shebang.split()[0][2:]
+    if use_bytes:
+        return executable_path.encode()
+    else:
+        return executable_path
 
 
 def get_scripts_summary(package):
@@ -52,8 +58,13 @@ def get_scripts_summary(package):
 
     for shebang in FORBIDDEN_SHEBANGS:
         if shebang_to_require(shebang) in package.require_names:
+            log.debug('Package {} requires {}'.format(
+                package.filename, shebang_to_require(
+                    shebang, use_bytes=False)))
             problematic = get_problematic_files(package.path, shebang)
             if problematic:
+                log.debug('{} shebang was found in scripts: {}'.format(
+                    shebang, ', '.join(problematic)))
                 scripts_summary[shebang] = problematic
     return scripts_summary
 
