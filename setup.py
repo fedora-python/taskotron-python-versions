@@ -20,7 +20,7 @@ setup(
     url='https://github.com/fedora-python/taskotron-python-versions',
     license='Public Domain',
     packages=find_packages(),
-    install_requires=['libarchive-c'],
+    install_requires=['libarchive-c', 'bugzilla'],
     setup_requires=['setuptools', 'pytest-runner'],
     tests_require=['pytest', 'pyyaml'],
     classifiers=[

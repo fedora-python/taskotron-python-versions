@@ -13,9 +13,12 @@ Currently the following checks are available:
 
 -  Whether the package uses versioned Python prefix in requirements' names;
 
--  Whether only Python 2 version of the package contains the executables.
+-  Whether only Python 2 version of the package contains the executables;
 
--  Whether the package uses versioned shebangs in its executables.
+-  Whether the package uses versioned shebangs in its executables;
+
+-  Whether the package supports Python 3 upstream but not in the package.
+
 
 Running
 -------

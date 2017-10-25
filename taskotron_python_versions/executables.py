@@ -1,6 +1,6 @@
 import collections
 
-from .common import log, write_to_artifact
+from .common import log, write_to_artifact, packages_by_version
 
 
 INFO_URL = ('https://fedoraproject.org/wiki/Packaging:Python#'
@@ -66,11 +66,7 @@ def task_executables(packages, koji_build, artifact):
     outcome = 'PASSED'
     message = ''
 
-    pkg_by_version = collections.defaultdict(list)
-    for package in packages:
-        for version in package.py_versions:
-            pkg_by_version[version].append(package)
-
+    pkg_by_version = packages_by_version(packages)
     py2_packages = pkg_by_version[2]
     py3_packages = pkg_by_version[3]
 

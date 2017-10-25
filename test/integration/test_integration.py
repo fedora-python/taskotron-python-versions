@@ -116,21 +116,26 @@ docutils = fixtures_factory('_docutils')
 _nodejs = fixtures_factory('nodejs-semver-5.1.1-2.fc26')
 nodejs = fixtures_factory('_nodejs')
 
+_bucky = fixtures_factory('python-bucky-2.2.2-7.fc27')
+bucky = fixtures_factory('_bucky')
+
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
                                      'copr', 'epub', 'twine', 'yum',
-                                     'vdirsyncer', 'docutils', 'nodejs'))
+                                     'vdirsyncer', 'docutils', 'nodejs',
+                                     'bucky'))
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
     results = request.getfixturevalue(results)
 
     # Each time a new check is added, this number needs to be increased
-    assert len(results) == 6
+    assert len(results) == 7
 
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
-                                     'copr', 'epub', 'twine'))
+                                     'copr', 'epub', 'twine',
+                                     'bucky'))
 def test_two_three_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions.two_three'].outcome == 'PASSED'
@@ -175,7 +180,7 @@ def test_naming_scheme_passed(results, request):
     assert results['python-versions.naming_scheme'].outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('copr', 'six', 'admesh'))
+@pytest.mark.parametrize('results', ('copr', 'six', 'admesh', 'bucky'))
 def test_naming_scheme_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions.naming_scheme'].outcome == 'FAILED'
@@ -240,7 +245,7 @@ def test_requires_naming_scheme_contains_python(yum):
 
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine'))
+                                     'copr', 'epub', 'twine', 'bucky'))
 def test_executables_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['python-versions.executables']
@@ -292,7 +297,7 @@ def test_unvesioned_shebangs_passed(results, request):
     assert results['python-versions.unversioned_shebangs'].outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('yum', 'tracer'))
+@pytest.mark.parametrize('results', ('yum', 'tracer', 'bucky'))
 def test_unvesioned_shebangs_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['python-versions.unversioned_shebangs'].outcome == 'FAILED'
@@ -314,3 +319,42 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
         This is discouraged and should be avoided. Please check the shebangs
         and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
    """).strip() in artifact.strip()
+
+
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
+                                     'copr', 'epub', 'twine', 'docutils'))
+def test_py3_support_passed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.py3_support']
+    assert task_result.outcome == 'PASSED'
+
+
+@pytest.mark.parametrize('results', ('bucky',))
+def test_py3_support_failed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.py3_support']
+    assert task_result.outcome == 'FAILED'
+
+
+def test_artifact_contains_py3_support_and_looks_as_expected(
+        bucky):
+    """Test that py3_support check fails if the package is mispackaged.
+
+    NOTE: The test will start to fail as soon as python-bucky
+    gets ported to Python 3 and its Bugzilla gets closed.
+    See https://bugzilla.redhat.com/show_bug.cgi?id=1367012
+    """
+    result = bucky['python-versions.py3_support']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert dedent("""
+        This software supports Python 3 upstream, but is not
+        packaged for Python 3 in Fedora.
+
+        Software MUST be packaged for Python 3 if upstream supports it.
+        See the following Bugzilla:
+        https://bugzilla.redhat.com/show_bug.cgi?id=1367012
+    """).strip() in artifact.strip()

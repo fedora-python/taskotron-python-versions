@@ -1,3 +1,4 @@
+import collections
 import logging
 import os
 
@@ -30,6 +31,19 @@ def write_to_artifact(artifact, message, info_url):
             message=message,
             info_url=info_url,
             bug_url=BUG_URL))
+
+
+def packages_by_version(packages):
+    """Given the list of packages, group them by the Python
+    version they are built for.
+
+    Return: (dict) Python version: list of packages
+    """
+    pkg_by_version = collections.defaultdict(list)
+    for package in packages:
+        for version in package.py_versions:
+            pkg_by_version[version].append(package)
+    return pkg_by_version
 
 
 class PackageException(Exception):

@@ -19,6 +19,7 @@ from taskotron_python_versions import (
     task_requires_naming_scheme,
     task_executables,
     task_unversioned_shebangs,
+    task_py3_support,
 )
 from taskotron_python_versions.common import log, Package, PackageException
 
@@ -59,6 +60,8 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
         srpm_packages + packages, koji_build, artifact))
     details.append(task_executables(packages, koji_build, artifact))
     details.append(task_unversioned_shebangs(packages, koji_build, artifact))
+    details.append(task_py3_support(
+        srpm_packages + packages, koji_build, artifact))
 
     # finally, the main detail with overall results
     outcome = 'PASSED'

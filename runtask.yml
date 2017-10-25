@@ -15,6 +15,7 @@ environment:
         - rpm-python
         - python2-dnf
         - python2-libarchive-c
+        - python-bugzilla
 
 actions:
     - name: download rpms from koji
