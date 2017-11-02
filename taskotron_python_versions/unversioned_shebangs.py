@@ -8,8 +8,8 @@ This is discouraged and should be avoided. Please check the shebangs
 and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
 """
 
-# TODO: update to real doc relevant to shebangs
-INFO_URL = ' https://pagure.io/packaging-committee/issue/698'
+INFO_URL = \
+    'https://fedoraproject.org/wiki/Packaging:Python#Multiple_Python_Runtimes'
 
 FORBIDDEN_SHEBANGS = ['#!/usr/bin/python', '#!/usr/bin/env python']
 
