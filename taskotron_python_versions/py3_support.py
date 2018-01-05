@@ -61,7 +61,7 @@ def get_py3_bugzillas_for(srpm_name):
 
     Return: (list) List of Bugzilla URLs
     """
-    bzapi = bugzilla.Bugzilla(BUGZILLA_URL)
+    bzapi = bugzilla.Bugzilla(BUGZILLA_URL, cookiefile=None, tokenfile=None)
     query = bzapi.build_query(
         product="Fedora",
         component=srpm_name)
