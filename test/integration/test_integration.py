@@ -130,7 +130,7 @@ def test_number_of_results(results, request):
     results = request.getfixturevalue(results)
 
     # Each time a new check is added, this number needs to be increased
-    assert len(results) == 7
+    assert len(results) == 8
 
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
@@ -358,3 +358,15 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
         See the following Bugzilla:
         https://bugzilla.redhat.com/show_bug.cgi?id=1367012
     """).strip() in artifact.strip()
+
+
+@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
+                                     'copr', 'epub', 'twine', 'docutils'))
+def test_python_usage_passed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.python_usage']
+    assert task_result.outcome == 'PASSED'
+
+
+# TODO add a FAILED integration test for python_usage (not possible yet)
+# TODO add an artifact integration test for the above

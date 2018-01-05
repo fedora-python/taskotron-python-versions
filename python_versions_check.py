@@ -20,6 +20,7 @@ from taskotron_python_versions import (
     task_executables,
     task_unversioned_shebangs,
     task_py3_support,
+    task_python_usage,
 )
 from taskotron_python_versions.common import log, Package, PackageException
 
@@ -30,6 +31,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
 
     # find files to run on
     files = sorted(os.listdir(workdir))
+    logs = []
     packages = []
     srpm_packages = []
     for file_ in files:
@@ -44,11 +46,16 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
                     srpm_packages.append(package)
                 else:
                     packages.append(package)
+        elif file_.startswith('build.log'):  # it's build.log.{arch}
+            logs.append(path)
         else:
-            log.debug('Ignoring non-rpm file: {}'.format(path))
+            log.debug('Ignoring non-rpm, non-build.log file: {}'.format(path))
 
     if not packages:
         log.warn('No binary rpm files found')
+
+    if not logs:
+        log.warn('No build.log found, that should not happen')
 
     artifact = os.path.join(artifactsdir, 'output.log')
 
@@ -62,6 +69,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     details.append(task_unversioned_shebangs(packages, koji_build, artifact))
     details.append(task_py3_support(
         srpm_packages + packages, koji_build, artifact))
+    details.append(task_python_usage(logs, koji_build, artifact))
 
     # finally, the main detail with overall results
     outcome = 'PASSED'

@@ -19,6 +19,8 @@ Currently the following checks are available:
 
 -  Whether the package supports Python 3 upstream but not in the package.
 
+-  Whether ``/usr/bin/python`` was invoked during the build.
+
 
 Running
 -------
