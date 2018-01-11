@@ -29,7 +29,8 @@ def is_unversioned(name):
     Return: (bool) True if used, False otherwise
     """
     if (os.path.isabs(name) or  # is an executable
-            os.path.splitext(name)[1]):  # has as extension
+            os.path.splitext(name)[1] or  # has as extension
+            name.startswith(('python2-', 'python3-'))):  # is versioned
         return False
 
     return (
