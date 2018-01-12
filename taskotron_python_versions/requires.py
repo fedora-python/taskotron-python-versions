@@ -162,7 +162,7 @@ def task_requires_naming_scheme(packages, koji_build, artifact):
                 message_rpms += message
 
     detail = check.CheckDetail(
-        checkname='python-versions.requires_naming_scheme',
+        checkname='requires_naming_scheme',
         item=koji_build,
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
@@ -174,7 +174,7 @@ def task_requires_naming_scheme(packages, koji_build, artifact):
     else:
         problems = 'No problems found.'
 
-    summary = 'python-versions.requires_naming_scheme {} for {}. {}'.format(
+    summary = 'subcheck requires_naming_scheme {} for {}. {}'.format(
         outcome, koji_build, problems)
     log.info(summary)
 

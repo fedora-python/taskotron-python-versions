@@ -90,7 +90,7 @@ def task_executables(packages, koji_build, artifact):
                 package, '\n * '.join(sorted(bins)))
 
     detail = check.CheckDetail(
-        checkname='python-versions.executables',
+        checkname='executables',
         item=koji_build,
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
@@ -99,7 +99,7 @@ def task_executables(packages, koji_build, artifact):
         detail.artifact = artifact
         write_to_artifact(artifact, MESSAGE.format(message), INFO_URL)
 
-    log.info('python-versions.executables {} for {}'.format(
+    log.info('subcheck executables {} for {}'.format(
         outcome, koji_build))
 
     return detail

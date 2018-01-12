@@ -1,3 +1,6 @@
+#!/usr/bin/python2
+# -*- coding: utf-8 -*-
+
 import logging
 if __name__ == '__main__':
     # Set up logging ASAP to see potential problems during import.
@@ -25,9 +28,15 @@ from taskotron_python_versions import (
 from taskotron_python_versions.common import log, Package, PackageException
 
 
-def run(koji_build, workdir='.', artifactsdir='artifacts'):
+def run(koji_build, workdir='.', artifactsdir='artifacts',
+        testcase='dist.python-versions'):
     '''The main method to run from Taskotron'''
     workdir = os.path.abspath(workdir)
+    resultsdir = os.path.join(artifactsdir, 'taskotron')
+    if not os.path.exists(resultsdir):
+        os.makedirs(resultsdir)
+    results_path = os.path.join(resultsdir, 'results.yml')
+    artifact = os.path.join(artifactsdir, 'output.log')
 
     # find files to run on
     files = sorted(os.listdir(workdir))
@@ -57,8 +66,6 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
     if not logs:
         log.warn('No build.log found, that should not happen')
 
-    artifact = os.path.join(artifactsdir, 'output.log')
-
     # put all the details form subtask in this list
     details = []
     details.append(task_two_three(packages, koji_build, artifact))
@@ -71,26 +78,39 @@ def run(koji_build, workdir='.', artifactsdir='artifacts'):
         srpm_packages + packages, koji_build, artifact))
     details.append(task_python_usage(logs, koji_build, artifact))
 
+    # update testcase for all subtasks (use their existing testcase as a
+    # suffix)
+    for detail in details:
+        detail.checkname = '{}.{}'.format(testcase, detail.checkname)
+
     # finally, the main detail with overall results
     outcome = 'PASSED'
     for detail in details:
         if detail.outcome == 'FAILED':
             outcome = 'FAILED'
             break
-
-    details.append(check.CheckDetail(checkname='python-versions',
-                                     item=koji_build,
-                                     report_type=check.ReportType.KOJI_BUILD,
-                                     outcome=outcome))
+    overall_detail = check.CheckDetail(checkname=testcase,
+                                       item=koji_build,
+                                       report_type=check.ReportType.KOJI_BUILD,
+                                       outcome=outcome)
     if outcome == 'FAILED':
-        details[-1].artifact = artifact
+        overall_detail.artifact = artifact
+    details.append(overall_detail)
 
     summary = 'python-versions {} for {}.'.format(outcome, koji_build)
     log.info(summary)
 
+    # generate output reportable to ResultsDB
     output = check.export_YAML(details)
-    return output
+    with open(results_path, 'w') as results_file:
+        results_file.write(output)
+
+    return 0 if overall_detail.outcome in ['PASSED', 'INFO'] else 1
 
 
 if __name__ == '__main__':
-    run('test')
+    rc = run(koji_build=sys.argv[1],
+             workdir=sys.argv[2],
+             artifactsdir=sys.argv[3],
+             testcase=sys.argv[4])
+    sys.exit(rc)

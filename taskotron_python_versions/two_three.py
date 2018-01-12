@@ -125,7 +125,7 @@ def task_two_three(packages, koji_build, artifact):
             outcome = 'FAILED'
             bads[package.filename] = py_versions
 
-    detail = check.CheckDetail(checkname='python-versions.two_three',
+    detail = check.CheckDetail(checkname='two_three',
                                item=koji_build,
                                report_type=check.ReportType.KOJI_BUILD,
                                outcome=outcome)
@@ -145,7 +145,7 @@ def task_two_three(packages, koji_build, artifact):
     else:
         problems = 'No problems found.'
 
-    summary = 'python-versions.two_three {} for {}. {}'.format(
+    summary = 'subcheck two_three {} for {}. {}'.format(
               outcome, koji_build, problems)
     log.info(summary)
 

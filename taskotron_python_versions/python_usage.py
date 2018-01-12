@@ -61,7 +61,7 @@ def task_python_usage(logs, koji_build, artifact):
             outcome = 'FAILED'
 
     detail = check.CheckDetail(
-        checkname='python-versions.python_usage',
+        checkname='python_usage',
         item=koji_build,
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
@@ -74,7 +74,7 @@ def task_python_usage(logs, koji_build, artifact):
     else:
         problems = 'No problems found.'
 
-    summary = 'python-versions.python_usage {} for {}. {}'.format(
+    summary = 'subcheck python_usage {} for {}. {}'.format(
         outcome, koji_build, problems)
     log.info(summary)
 

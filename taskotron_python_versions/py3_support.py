@@ -109,7 +109,7 @@ def task_py3_support(packages, koji_build, artifact):
                 ' upstream, skipping Py3 support check')
 
     detail = check.CheckDetail(
-        checkname='python-versions.py3_support',
+        checkname='py3_support',
         item=koji_build,
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
@@ -118,7 +118,7 @@ def task_py3_support(packages, koji_build, artifact):
         detail.artifact = artifact
         write_to_artifact(artifact, MESSAGE.format(message), INFO_URL)
 
-    log.info('python-versions.py3_support {} for {}'.format(
+    log.info('subcheck py3_support {} for {}'.format(
         outcome, koji_build))
 
     return detail

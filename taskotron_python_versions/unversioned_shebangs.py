@@ -94,7 +94,7 @@ def task_unversioned_shebangs(packages, koji_build, artifact):
                     package, shebang, '\n   '.join(sorted(scripts)))
 
     detail = check.CheckDetail(
-        checkname='python-versions.unversioned_shebangs',
+        checkname='unversioned_shebangs',
         item=koji_build,
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
@@ -105,7 +105,7 @@ def task_unversioned_shebangs(packages, koji_build, artifact):
     else:
         shebang_message = 'No problems found.'
 
-    log.info('python-versions.unversioned_shebangs {} for {}. {}'.format(
+    log.info('subcheck unversioned_shebangs {} for {}. {}'.format(
         outcome, koji_build, shebang_message))
 
     return detail

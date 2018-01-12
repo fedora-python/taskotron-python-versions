@@ -25,29 +25,19 @@ Currently the following checks are available:
 Running
 -------
 
-You can run the checks locally with
-`Taskotron <https://fedoraproject.org/wiki/Taskotron>`__. First,
-install it (you can
-follow the
-`Quickstart <https://qa.fedoraproject.org/docs/libtaskotron/latest/quickstart.html>`__).
-You'll also need the ``rpm``, ``dnf`` and ``libarchive-c`` Python 2 modules
-(``python2-rpm``, ``python2-dnf``, ``python2-libarchive-c``).
-Note that Taskotron unfortunately runs on Python 2, but the code in
-this repository is Python 3 compatible as well.
+To run this task locally, execute the following command as root (don't do this
+on a production machine!)::
 
-Once everything is installed you can run the task on a Koji build
-using the
-``name-(epoch:)version-release`` (``nevr``) identifier.
+  $ ansible-playbook tests.yml -e taskotron_item=<nevr>
 
-.. code:: console
+where ``nevr`` is a Koji build ``name-(epoch:)version-release`` identifier.
 
-    $ runtask -i <nevr> -t koji_build runtask.yml
+For example::
 
-For example:
+  $ ansible-playbook tests.yml -e taskotron_item=python-gear-0.11.0-1.fc27
 
-.. code:: console
+You can see the results in ``./artifacts/`` directory.
 
-    $ runtask -i eric-6.1.6-2.fc25 -t koji_build runtask.yml
 
 Tests
 -----

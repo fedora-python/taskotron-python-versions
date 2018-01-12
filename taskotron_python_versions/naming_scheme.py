@@ -91,7 +91,7 @@ def task_naming_scheme(packages, koji_build, artifact):
                 package.filename))
 
     detail = check.CheckDetail(
-        checkname='python-versions.naming_scheme',
+        checkname='naming_scheme',
         item=koji_build,
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
@@ -104,7 +104,7 @@ def task_naming_scheme(packages, koji_build, artifact):
     else:
         problems = 'No problems found.'
 
-    summary = 'python-versions.naming_scheme {} for {}. {}'.format(
+    summary = 'subcheck naming_scheme {} for {}. {}'.format(
         outcome, koji_build, problems)
     log.info(summary)
 

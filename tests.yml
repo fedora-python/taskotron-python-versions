@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  remote_user: root
+  vars:
+    artifacts: ./artifacts
+    testcase: dist.python-versions
+    taskotron_generic_task: true
+  tasks:
+    - name: Install required packages
+      dnf:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - rpm-python
+        - python2-dnf
+        - python2-libarchive-c
+        - python-bugzilla
+        - koji
+        - libtaskotron-core
+
+    - name: Make sure artifacts dir exists
+      # This is not necessary when running through taskotron (since SI mandates
+      # the dir has to exist), but is useful for local execution of just this
+      # playbook
+      file:
+        path: "{{ artifacts }}"
+        state: directory
+
+    - name: Create work dir
+      tempfile:
+        path: /var/tmp
+        state: directory
+        prefix: task-{{ testcase }}_
+      register: workdir
+
+    - name: Download RPMs from koji
+      shell: koji download-build {{ taskotron_item }}
+      args:
+        chdir: "{{ workdir.path }}"
+
+    - name: Run task
+      shell: >
+        ./python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
+        {{ artifacts }} {{ testcase }}
+        > {{ artifacts }}/test.log 2>&1
