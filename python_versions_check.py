@@ -32,10 +32,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
         testcase='dist.python-versions'):
     '''The main method to run from Taskotron'''
     workdir = os.path.abspath(workdir)
-    resultsdir = os.path.join(artifactsdir, 'taskotron')
-    if not os.path.exists(resultsdir):
-        os.makedirs(resultsdir)
-    results_path = os.path.join(resultsdir, 'results.yml')
+    results_path = os.path.join(artifactsdir, 'taskotron', 'results.yml')
     artifact = os.path.join(artifactsdir, 'output.log')
 
     # find files to run on

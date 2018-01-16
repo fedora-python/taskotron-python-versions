@@ -18,12 +18,10 @@
         - koji
         - libtaskotron-core
 
-    - name: Make sure artifacts dir exists
-      # This is not necessary when running through taskotron (since SI mandates
-      # the dir has to exist), but is useful for local execution of just this
-      # playbook
+    - name: Make sure taskotron results dir exists
+      # this is for placing results.yml file
       file:
-        path: "{{ artifacts }}"
+        path: "{{ artifacts }}/taskotron"
         state: directory
 
     - name: Create work dir
