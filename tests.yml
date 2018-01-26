@@ -1,10 +1,15 @@
----
+# Run python-versions on {{ taskotron_item }} NVR build
+
 - hosts: localhost
   remote_user: root
   vars:
-    artifacts: ./artifacts
     testcase: dist.python-versions
     taskotron_generic_task: true
+    # below are fallback vars for local testing
+    artifacts: ./artifacts
+    taskotron_item: python-gear-0.11.0-1.fc27  # you should really override at least this :)
+    taskotron_supported_arches:
+      - x86_64
   tasks:
     - name: Install required packages
       dnf:
@@ -31,13 +36,35 @@
         prefix: task-{{ testcase }}_
       register: workdir
 
-    - name: Download RPMs from koji
-      shell: koji download-build {{ taskotron_item }}
-      args:
-        chdir: "{{ workdir.path }}"
+    - name: Print work dir
+      debug:
+        var: workdir.path
 
-    - name: Run task
-      shell: >
-        ./python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
-        {{ artifacts }} {{ testcase }}
-        > {{ artifacts }}/test.log 2>&1
+    - name: Compute architectures to download
+      set_fact:
+        download_arches: "{{ taskotron_supported_binary_arches }} + ['noarch', 'src']"
+
+    - name: Print architectures to download
+      debug:
+        var: download_arches
+
+    - block:
+        - name: Download RPMs from koji
+          # use realpath because when running in local mode, artifacts is a
+          # relative path and we use chdir
+          shell: >
+            koji download-build --arch {{ download_arches | join(' --arch ') }}
+            {{ taskotron_item }}
+            &> {{ artifacts | realpath }}/test.log
+          args:
+            chdir: "{{ workdir.path }}"
+
+        - name: Run task
+          shell: >
+            ./python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
+            {{ artifacts }} {{ testcase }}
+            &>> {{ artifacts }}/test.log
+      always:
+        - name: Print results location
+          debug:
+            msg: 'You can see task results at: {{ artifacts | realpath }}'
