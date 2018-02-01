@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 '''Download correct NVRs for python-versions to operate on.'''

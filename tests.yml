@@ -51,13 +51,13 @@
     - block:
         - name: Download RPMs from Koji
           shell: >
-            ./download_rpms.py {{ taskotron_item }} {{ workdir.path }}
+            python2 download_rpms.py {{ taskotron_item }} {{ workdir.path }}
             {{ download_arches }}
             &> {{ artifacts }}/test.log
 
         - name: Run task
           shell: >
-            ./python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
+            python2 python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
             {{ artifacts }} {{ testcase }}
             &>> {{ artifacts }}/test.log
       always:
