@@ -119,11 +119,14 @@ nodejs = fixtures_factory('_nodejs')
 _bucky = fixtures_factory('python-bucky-2.2.2-7.fc27')
 bucky = fixtures_factory('_bucky')
 
+_jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-1.fc28')
+jsonrpc = fixtures_factory('_jsonrpc')
+
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
                                      'copr', 'epub', 'twine', 'yum',
                                      'vdirsyncer', 'docutils', 'nodejs',
-                                     'bucky'))
+                                     'bucky', 'jsonrpc'))
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -368,5 +371,25 @@ def test_python_usage_passed(results, request):
     assert task_result.outcome == 'PASSED'
 
 
-# TODO add a FAILED integration test for python_usage (not possible yet)
-# TODO add an artifact integration test for the above
+@pytest.mark.parametrize('results', ('jsonrpc',))
+def test_python_usage_failed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['python-versions.python_usage']
+    assert task_result.outcome == 'FAILED'
+
+
+def test_artifact_contains_python_usage_and_looks_as_expected(jsonrpc):
+    result = jsonrpc['python-versions.python_usage']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert dedent("""
+        You've used /usr/bin/python during build on the following arches:
+
+          armv7hl, i686, x86_64
+
+        Use /usr/bin/python3 or /usr/bin/python2 explicitly.
+        /usr/bin/python will be removed or switched to Python 3 in the future.
+    """).strip() in artifact.strip()

@@ -68,7 +68,7 @@ def task_python_usage(logs, koji_build, artifact):
 
     if problem_arches:
         detail.artifact = artifact
-        archstr = ', '.join(problem_arches)
+        archstr = ', '.join(sorted(problem_arches))
         write_to_artifact(artifact, MESSAGE.format(archstr), INFO_URL)
         problems = 'Problematic architectures: ' + archstr
     else:
