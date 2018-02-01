@@ -388,7 +388,7 @@ def test_artifact_contains_python_usage_and_looks_as_expected(jsonrpc):
     assert dedent("""
         You've used /usr/bin/python during build on the following arches:
 
-          armv7hl, i686, x86_64
+          jsonrpc-glib-3.27.4-1.fc28: armv7hl, i686, x86_64
 
         Use /usr/bin/python3 or /usr/bin/python2 explicitly.
         /usr/bin/python will be removed or switched to Python 3 in the future.
