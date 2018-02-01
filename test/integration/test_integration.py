@@ -1,4 +1,7 @@
 from collections import namedtuple
+import contextlib
+import glob
+import shutil
 import subprocess
 import sys
 from textwrap import dedent
@@ -11,54 +14,69 @@ import pytest
 Result = namedtuple('Result', ['outcome', 'artifact', 'item'])
 
 
-def parse_results(log):
+class MockEnv:
+    '''Use this to work with mock. Mutliple instances are not safe.'''
+
+    def __init__(self):
+        self.mock = ['mock', '-r', './mock.cfg']
+        self._run(['--init'], check=True)
+
+    def _run(self, what, **kwargs):
+        return subprocess.run(self.mock + what, **kwargs)
+
+    def copy_in(self, files):
+        self._run(['--copyin'] + files + ['/'], check=True)
+
+    def copy_out(self, directory, *, clean_target=False):
+        if clean_target:
+            with contextlib.suppress(FileNotFoundError):
+                shutil.rmtree(directory)
+        self._run(['--copyout', directory, directory], check=True)
+
+    def shell(self, command):
+        self._run(['--shell', command])
+
+    def orphanskill(self):
+        self._run(['--orphanskill'])
+
+
+@pytest.fixture(scope="session")
+def mock():
+    '''Setup a mock we can run Ansible tasks in under root'''
+    mockenv = MockEnv()
+    files = ['taskotron_python_versions'] + glob.glob('*.py') + ['tests.yml']
+    mockenv.copy_in(files)
+    yield mockenv
+    mockenv.orphanskill()
+
+
+def parse_results(path):
     '''
-    From the given stdout log, parse the results
+    From the given result file, parse the results
     '''
-    start = 'results:'
-    results = []
-    record = False
-
-    for line in log.splitlines():
-        if line.strip() == start:
-            record = True
-        if record:
-            results.append(line)
-            if not line:
-                break
-
-    if not results:
-        raise RuntimeError('Could not parse output')
-    return yaml.load('\n'.join(results))['results']
+    with open(path) as f:
+        return yaml.load(f)['results']
 
 
-def run_task(nevr, *, reterr=False):
+def run_task(nevr, *, mock):
     '''
-    Run the task on a Koji build.
+    Run the task on a Koji build in given mock.
     Returns a dict with Results (outcome, artifact, item)
-    If reterr is true, returns a tuple with the above and captured stderr
-    If reterr is false, prints the stderr
+    Actually returns a tuple with the above and captured log
     '''
-    proc = subprocess.Popen(
-        ['runtask', '-i', nevr, '-t', 'koji_build', 'runtask.yml'],
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
-    _, err = proc.communicate()
-    if proc.returncode != 0:
-        print(err, file=sys.stderr)  # always print stderr in this case
-        raise RuntimeError('runtask exited with {}'.format(proc.returncode))
-    results = parse_results(err)
+    mock.shell('ansible-playbook tests.yml -e taskotron_item={}'.format(nevr))
+    mock.copy_out('artifacts', clean_target=True)
+
+    with open('artifacts/test.log') as f:
+        log = f.read()
+
+    results = parse_results('artifacts/taskotron/results.yml')
 
     ret = {r['checkname']: Result(r.get('outcome'),
                                   r.get('artifact'),
                                   r.get('item')) for r in results}
 
-    if reterr:
-        return ret, err
-
-    print(err, file=sys.stderr)
-    return ret
+    return ret, log
 
 
 def fixtures_factory(nevr):
@@ -69,8 +87,8 @@ def fixtures_factory(nevr):
     See examples bellow.'''
     if not nevr.startswith('_'):
         @pytest.fixture(scope="session")
-        def _results():
-            return run_task(nevr, reterr=True)
+        def _results(mock):
+            return run_task(nevr, mock=mock)
 
         return _results
 
@@ -141,17 +159,17 @@ def test_number_of_results(results, request):
                                      'bucky'))
 def test_two_three_passed(results, request):
     results = request.getfixturevalue(results)
-    assert results['python-versions.two_three'].outcome == 'PASSED'
+    assert results['dist.python-versions.two_three'].outcome == 'PASSED'
 
 
 def test_two_three_failed(tracer):
-    assert tracer['python-versions.two_three'].outcome == 'FAILED'
+    assert tracer['dist.python-versions.two_three'].outcome == 'FAILED'
 
 
 @pytest.mark.parametrize('results', ('tracer', 'copr', 'admesh'))
 def test_one_failed_result_is_total_failed(results, request):
     results = request.getfixturevalue(results)
-    assert results['python-versions'].outcome == 'FAILED'
+    assert results['dist.python-versions'].outcome == 'FAILED'
 
 
 @pytest.mark.parametrize(('results', 'task'),
@@ -160,12 +178,12 @@ def test_one_failed_result_is_total_failed(results, request):
                           ('admesh', 'requires_naming_scheme')))
 def test_artifact_is_the_same(results, task, request):
     results = request.getfixturevalue(results)
-    assert (results['python-versions'].artifact ==
-            results['python-versions.' + task].artifact)
+    assert (results['dist.python-versions'].artifact ==
+            results['dist.python-versions.' + task].artifact)
 
 
 def test_artifact_contains_two_three_and_looks_as_expected(tracer):
-    result = tracer['python-versions.two_three']
+    result = tracer['dist.python-versions.two_three']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -180,17 +198,17 @@ def test_artifact_contains_two_three_and_looks_as_expected(tracer):
 @pytest.mark.parametrize('results', ('eric', 'epub', 'twine', 'vdirsyncer'))
 def test_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
-    assert results['python-versions.naming_scheme'].outcome == 'PASSED'
+    assert results['dist.python-versions.naming_scheme'].outcome == 'PASSED'
 
 
 @pytest.mark.parametrize('results', ('copr', 'six', 'admesh', 'bucky'))
 def test_naming_scheme_failed(results, request):
     results = request.getfixturevalue(results)
-    assert results['python-versions.naming_scheme'].outcome == 'FAILED'
+    assert results['dist.python-versions.naming_scheme'].outcome == 'FAILED'
 
 
 def test_artifact_contains_naming_scheme_and_looks_as_expected(copr):
-    result = copr['python-versions.naming_scheme']
+    result = copr['dist.python-versions.naming_scheme']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -203,20 +221,20 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(copr):
 @pytest.mark.parametrize('results', ('eric', 'twine', 'six'))
 def test_requires_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.requires_naming_scheme']
+    task_result = results['dist.python-versions.requires_naming_scheme']
     assert task_result.outcome == 'PASSED'
 
 
 @pytest.mark.parametrize('results', ('admesh', 'copr'))
 def test_requires_naming_scheme_failed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.requires_naming_scheme']
+    task_result = results['dist.python-versions.requires_naming_scheme']
     assert task_result.outcome == 'FAILED'
 
 
 def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
         tracer):
-    result = tracer['python-versions.requires_naming_scheme']
+    result = tracer['dist.python-versions.requires_naming_scheme']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -238,7 +256,7 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
 
 
 def test_requires_naming_scheme_contains_python(yum):
-    result = yum['python-versions.requires_naming_scheme']
+    result = yum['dist.python-versions.requires_naming_scheme']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -251,20 +269,20 @@ def test_requires_naming_scheme_contains_python(yum):
                                      'copr', 'epub', 'twine', 'bucky'))
 def test_executables_passed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.executables']
+    task_result = results['dist.python-versions.executables']
     assert task_result.outcome == 'PASSED'
 
 
 @pytest.mark.parametrize('results', ('docutils',))
 def test_executables_failed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.executables']
+    task_result = results['dist.python-versions.executables']
     assert task_result.outcome == 'FAILED'
 
 
 def test_artifact_contains_executables_and_looks_as_expected(
         docutils):
-    result = docutils['python-versions.executables']
+    result = docutils['dist.python-versions.executables']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -297,18 +315,20 @@ def test_artifact_contains_executables_and_looks_as_expected(
                                      'epub', 'twine', 'nodejs'))
 def test_unvesioned_shebangs_passed(results, request):
     results = request.getfixturevalue(results)
-    assert results['python-versions.unversioned_shebangs'].outcome == 'PASSED'
+    result = results['dist.python-versions.unversioned_shebangs']
+    assert result.outcome == 'PASSED'
 
 
 @pytest.mark.parametrize('results', ('yum', 'tracer', 'bucky'))
 def test_unvesioned_shebangs_failed(results, request):
     results = request.getfixturevalue(results)
-    assert results['python-versions.unversioned_shebangs'].outcome == 'FAILED'
+    result = results['dist.python-versions.unversioned_shebangs']
+    assert result.outcome == 'FAILED'
 
 
 def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
         tracer):
-    result = tracer['python-versions.unversioned_shebangs']
+    result = tracer['dist.python-versions.unversioned_shebangs']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -328,14 +348,14 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
                                      'copr', 'epub', 'twine', 'docutils'))
 def test_py3_support_passed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.py3_support']
+    task_result = results['dist.python-versions.py3_support']
     assert task_result.outcome == 'PASSED'
 
 
 @pytest.mark.parametrize('results', ('bucky',))
 def test_py3_support_failed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.py3_support']
+    task_result = results['dist.python-versions.py3_support']
     assert task_result.outcome == 'FAILED'
 
 
@@ -347,7 +367,7 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
     gets ported to Python 3 and its Bugzilla gets closed.
     See https://bugzilla.redhat.com/show_bug.cgi?id=1367012
     """
-    result = bucky['python-versions.py3_support']
+    result = bucky['dist.python-versions.py3_support']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -367,19 +387,19 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
                                      'copr', 'epub', 'twine', 'docutils'))
 def test_python_usage_passed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.python_usage']
+    task_result = results['dist.python-versions.python_usage']
     assert task_result.outcome == 'PASSED'
 
 
 @pytest.mark.parametrize('results', ('jsonrpc',))
 def test_python_usage_failed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['python-versions.python_usage']
+    task_result = results['dist.python-versions.python_usage']
     assert task_result.outcome == 'FAILED'
 
 
 def test_artifact_contains_python_usage_and_looks_as_expected(jsonrpc):
-    result = jsonrpc['python-versions.python_usage']
+    result = jsonrpc['dist.python-versions.python_usage']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -388,7 +408,7 @@ def test_artifact_contains_python_usage_and_looks_as_expected(jsonrpc):
     assert dedent("""
         You've used /usr/bin/python during build on the following arches:
 
-          jsonrpc-glib-3.27.4-1.fc28: armv7hl, i686, x86_64
+          jsonrpc-glib-3.27.4-1.fc28: x86_64
 
         Use /usr/bin/python3 or /usr/bin/python2 explicitly.
         /usr/bin/python will be removed or switched to Python 3 in the future.
