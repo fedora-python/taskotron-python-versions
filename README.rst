@@ -38,6 +38,13 @@ For example::
 
 You can see the results in ``./artifacts/`` directory.
 
+You can run the above in mock::
+
+  $ mock -r ./mock.cfg --init
+  $ mock -r ./mock.cfg --copyin taskotron_python_versions *.py tests.yml /
+  $ mock -r ./mock.cfg --shell 'ansible-playbook tests.yml -e taskotron_item=python-gear-0.11.0-1.fc27'
+  $ mock -r ./mock.cfg --copyout artifacts artifacts
+
 
 Tests
 -----
