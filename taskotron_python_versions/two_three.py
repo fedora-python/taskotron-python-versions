@@ -40,6 +40,8 @@ NAME_NOTS = (
     b'python-ldb-devel-common',
     b'python-qt5-rpm-macros',
     b'python-btchip-common',
+    b'python-matplotlib-data',
+    b'python-matplotlib-data-fonts',
 )
 
 
