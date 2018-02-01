@@ -20,8 +20,8 @@
         - python2-dnf
         - python2-libarchive-c
         - python-bugzilla
-        - koji
         - libtaskotron-core
+        - libtaskotron-fedora
 
     - name: Make sure taskotron results dir exists
       # this is for placing results.yml file
@@ -42,22 +42,18 @@
 
     - name: Compute architectures to download
       set_fact:
-        download_arches: "{{ taskotron_supported_binary_arches }} + ['noarch', 'src']"
+        download_arches: "{{ taskotron_supported_arches | join(',') }}"
 
     - name: Print architectures to download
       debug:
         var: download_arches
 
     - block:
-        - name: Download RPMs from koji
-          # use realpath because when running in local mode, artifacts is a
-          # relative path and we use chdir
+        - name: Download RPMs from Koji
           shell: >
-            koji download-build --arch {{ download_arches | join(' --arch ') }}
-            {{ taskotron_item }}
-            &> {{ artifacts | realpath }}/test.log
-          args:
-            chdir: "{{ workdir.path }}"
+            ./download_rpms.py {{ taskotron_item }} {{ workdir.path }}
+            {{ download_arches }}
+            &> {{ artifacts }}/test.log
 
         - name: Run task
           shell: >
