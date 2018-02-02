@@ -45,17 +45,26 @@ You can also run the above in mock::
   $ mock -r ./mock.cfg --shell 'ansible-playbook tests.yml -e taskotron_item=python-gear-0.11.0-1.fc27'
   $ mock -r ./mock.cfg --copyout artifacts artifacts
 
-
 Tests
 -----
 
 This task is covered with functional and integration tests.
 You can run them using `tox <https://tox.readthedocs.io/>`__, but
 you will need ``mock``, ``python3-rpm`` and ``python3-dnf`` installed.
-
-.. code:: console
+For mock configuration see
+`mock setup <https://github.com/rpm-software-management/mock/wiki#setup>`__
+instructions. Use the following command to run the test suite::
 
     $ tox
+
+The integration tests may take a while to execute, as they are
+running real tasks in mock. However, for development you may
+speed them up by reusing the results of the previous test run.
+This is useful if you modify the test itself, without changing the
+implementation of task checks. Use the following command to run
+integration tests in a fake mode::
+
+    $ tox -e integration -- --fake
 
 The tests are also being executed on `Travis
 CI <https://travis-ci.org/fedora-python/taskotron-python-versions/>`__.
