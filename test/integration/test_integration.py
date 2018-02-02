@@ -34,7 +34,8 @@ class MockEnv:
         self._run(['--copyout', directory, directory], check=True)
 
     def shell(self, command):
-        self._run(['--shell', command])
+        cp = self._run(['--shell', command])
+        return cp.returncode
 
     def orphanskill(self):
         self._run(['--orphanskill'])
@@ -64,11 +65,18 @@ def run_task(nevr, *, mock):
     Returns a dict with Results (outcome, artifact, item)
     Actually returns a tuple with the above and captured log
     '''
-    mock.shell('ansible-playbook tests.yml -e taskotron_item={}'.format(nevr))
+    exit_code = mock.shell('ansible-playbook tests.yml '
+                           '-e taskotron_item={}'.format(nevr))
     mock.copy_out('artifacts', clean_target=True)
 
     with open('artifacts/test.log') as f:
         log = f.read()
+
+    # 0 for PASSED
+    # 2 for FAILED
+    if exit_code not in (0, 2):
+        print(log, file=sys.stderr)
+        raise RuntimeError('mock shell ended with {}'.format(exit_code))
 
     results = parse_results('artifacts/taskotron/results.yml')
 
