@@ -38,7 +38,7 @@ For example::
 
 You can see the results in ``./artifacts/`` directory.
 
-You can run the above in mock::
+You can also run the above in mock::
 
   $ mock -r ./mock.cfg --init
   $ mock -r ./mock.cfg --copyin taskotron_python_versions *.py tests.yml /
@@ -49,19 +49,18 @@ You can run the above in mock::
 Tests
 -----
 
-There are also automatic tests available. You can run them using
-`tox <https://tox.readthedocs.io/>`__.
-You'll need the above mentioned dependencies and ``python3-rpm``
-and ``python3-dnf`` installed as well.
+This task is covered with functional and integration tests.
+You can run them using `tox <https://tox.readthedocs.io/>`__, but
+you will need ``mock``, ``python3-rpm`` and ``python3-dnf`` installed.
 
 .. code:: console
 
     $ tox
 
-Automatic tests also happen on `Tarvis
+The tests are also being executed on `Travis
 CI <https://travis-ci.org/fedora-python/taskotron-python-versions/>`__.
 Since Travis CI runs on Ubuntu
-and Ubuntu lacks the RPM Python bindings and Taskotron,
+and Ubuntu lacks the RPM Python bindings and mock,
 `Docker <https://docs.travis-ci.com/user/docker/>`__ is used
 to run the tests on Fedora. You can run the tests in Docker as well,
 just use the commands from the ``.travis.yml`` file.
