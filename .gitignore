@@ -2,6 +2,7 @@
 *.pyo
 *.pyc
 __pycache__
+/artifacts/
 /artifacts-*/
 /build/
 /dist/
