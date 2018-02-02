@@ -16,9 +16,9 @@ Result = namedtuple('Result', ['outcome', 'artifact', 'item'])
 
 class MockEnv:
     '''Use this to work with mock. Mutliple instances are not safe.'''
+    mock = ['mock', '-r', './mock.cfg']
 
     def __init__(self):
-        self.mock = ['mock', '-r', './mock.cfg']
         self._run(['--init'], check=True)
 
     def _run(self, what, **kwargs):
@@ -41,10 +41,22 @@ class MockEnv:
         self._run(['--orphanskill'])
 
 
+class FakeMockEnv(MockEnv):
+    '''Use this to fake the mock interactions'''
+    mock = ['echo', 'mock']
+
+    def copy_out(self, directory, target, *, clean_target=False):
+        '''Fake it, never clean target'''
+        return super().copy_out(directory, target, clean_target=False)
+
+
 @pytest.fixture(scope="session")
-def mock():
+def mock(request):
     '''Setup a mock we can run Ansible tasks in under root'''
-    mockenv = MockEnv()
+    if request.config.getoption('--fake'):
+        mockenv = FakeMockEnv()
+    else:
+        mockenv = MockEnv()
     files = ['taskotron_python_versions'] + glob.glob('*.py') + ['tests.yml']
     mockenv.copy_in(files)
     yield mockenv
