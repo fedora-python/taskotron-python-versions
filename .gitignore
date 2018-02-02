@@ -2,9 +2,10 @@
 *.pyo
 *.pyc
 __pycache__
-/artifacts
-/dist
-/.tox
-/.eggs
+/artifacts-*/
+/build/
+/dist/
+/.tox/
+/.eggs/
 .cache
 *.egg-info

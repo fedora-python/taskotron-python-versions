@@ -27,11 +27,11 @@ class MockEnv:
     def copy_in(self, files):
         self._run(['--copyin'] + files + ['/'], check=True)
 
-    def copy_out(self, directory, *, clean_target=False):
+    def copy_out(self, directory, target, *, clean_target=False):
         if clean_target:
             with contextlib.suppress(FileNotFoundError):
-                shutil.rmtree(directory)
-        self._run(['--copyout', directory, directory], check=True)
+                shutil.rmtree(target)
+        self._run(['--copyout', directory, target], check=True)
 
     def shell(self, command):
         cp = self._run(['--shell', command])
@@ -67,9 +67,11 @@ def run_task(nevr, *, mock):
     '''
     exit_code = mock.shell('ansible-playbook tests.yml '
                            '-e taskotron_item={}'.format(nevr))
-    mock.copy_out('artifacts', clean_target=True)
+    artifacts = 'artifacts-{}'.format(nevr)
+    mock.copy_out('artifacts', artifacts, clean_target=True)
+    mock.shell('rm artifacts -rf')  # purge the logs
 
-    with open('artifacts/test.log') as f:
+    with open(artifacts + '/test.log') as f:
         log = f.read()
 
     # 0 for PASSED
@@ -78,10 +80,17 @@ def run_task(nevr, *, mock):
         print(log, file=sys.stderr)
         raise RuntimeError('mock shell ended with {}'.format(exit_code))
 
-    results = parse_results('artifacts/taskotron/results.yml')
+    results = parse_results(artifacts + '/taskotron/results.yml')
+
+    # we need to preserve the artifacts for each nevr separately
+    # but the saved path is just ./artifacts/...
+    def fix_artifact_path(path):
+        if path is None:
+            return None
+        return path.replace('/artifacts/', '/{}/'.format(artifacts))
 
     ret = {r['checkname']: Result(r.get('outcome'),
-                                  r.get('artifact'),
+                                  fix_artifact_path(r.get('artifact')),
                                   r.get('item')) for r in results}
 
     return ret, log
