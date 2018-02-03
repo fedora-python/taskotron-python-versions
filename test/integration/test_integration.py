@@ -1,6 +1,7 @@
 from collections import namedtuple
 import contextlib
 import glob
+import pprint
 import shutil
 import subprocess
 import sys
@@ -75,7 +76,6 @@ def run_task(nevr, *, mock):
     '''
     Run the task on a Koji build in given mock.
     Returns a dict with Results (outcome, artifact, item)
-    Actually returns a tuple with the above and captured log
     '''
     exit_code = mock.shell('ansible-playbook tests.yml '
                            '-e taskotron_item={}'.format(nevr))
@@ -83,13 +83,9 @@ def run_task(nevr, *, mock):
     mock.copy_out('artifacts', artifacts, clean_target=True)
     mock.shell('rm artifacts -rf')  # purge the logs
 
-    with open(artifacts + '/test.log') as f:
-        log = f.read()
-
     # 0 for PASSED
     # 2 for FAILED
     if exit_code not in (0, 2):
-        print(log, file=sys.stderr)
         raise RuntimeError('mock shell ended with {}'.format(exit_code))
 
     results = parse_results(artifacts + '/taskotron/results.yml')
@@ -101,11 +97,9 @@ def run_task(nevr, *, mock):
             return None
         return path.replace('/artifacts/', '/{}/'.format(artifacts))
 
-    ret = {r['checkname']: Result(r.get('outcome'),
-                                  fix_artifact_path(r.get('artifact')),
-                                  r.get('item')) for r in results}
-
-    return ret, log
+    return {r['checkname']: Result(r.get('outcome'),
+                                   fix_artifact_path(r.get('artifact')),
+                                   r.get('item')) for r in results}
 
 
 def fixtures_factory(nevr):
@@ -117,14 +111,16 @@ def fixtures_factory(nevr):
     if not nevr.startswith('_'):
         @pytest.fixture(scope="session")
         def _results(mock):
-            return run_task(nevr, mock=mock)
+            return run_task(nevr, mock=mock), nevr
 
         return _results
 
     @pytest.fixture()
     def results(request):
         _results = request.getfixturevalue(nevr)
-        print(_results[1], file=sys.stderr)
+        pprint.pprint(_results[0], stream=sys.stderr)
+        path = './artifacts-{}/'.format(_results[1])
+        print('\nLogs and results are in {}'.format(path), file=sys.stderr)
         return _results[0]
 
     return results
