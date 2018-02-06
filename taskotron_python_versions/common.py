@@ -2,6 +2,7 @@ import collections
 import logging
 import os
 
+import mmap
 import rpm
 
 log = logging.getLogger('python-versions')
@@ -44,6 +45,30 @@ def packages_by_version(packages):
         for version in package.py_versions:
             pkg_by_version[version].append(package)
     return pkg_by_version
+
+
+def file_contains(path, needle):
+    """Check if the file residing on the given path contains the given needle
+    """
+    # Since we have no idea if build.log is valid utf8, let's convert our ASCII
+    # needle to bytes and use bytes everywhere.
+    # This also allow us to use mmap on Python 3.
+    # Be explicit here, to make it fail early if our needle is not ASCII.
+    needle = needle.encode('ascii')
+
+    with open(path, 'rb') as f:
+        # build.logs tend to be laaaarge, so using a single read() is bad idea;
+        # let's optimize prematurely because practicality beats purity
+
+        # Memory-mapped file object behaving like bytearray
+        mmf = mmap.mmap(f.fileno(),
+                        length=0,  # = determine automatically
+                        access=mmap.ACCESS_READ)
+        try:
+            return mmf.find(needle) != -1
+        finally:
+            # mmap context manager is Python 3 only
+            mmf.close()
 
 
 class PackageException(Exception):

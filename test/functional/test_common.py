@@ -1,6 +1,6 @@
 import pytest
 
-from taskotron_python_versions.python_usage import file_contains
+from taskotron_python_versions.common import file_contains
 
 from .common import gpkg_path
 
