@@ -1,6 +1,6 @@
 import libarchive
 
-from .common import log, write_to_artifact
+from .common import log, write_to_artifact, file_contains
 
 MESSAGE = """These RPMs contain problematic shebang in some of the scripts:
 {}
@@ -8,10 +8,22 @@ This is discouraged and should be avoided. Please check the shebangs
 and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
 """
 
+MANGLED_MESSAGE = """The package uses either `#!/usr/bin/python` or
+`#!/usr/bin/env python` shebangs. They are forbidden by the guidelines
+and have been automatically mangled during build on the following
+arches:
+
+    {}
+
+Please check the shebangs and use either `#!/usr/bin/python2` or
+`#!/usr/bin/python3` explicitly.
+"""
+
 INFO_URL = \
     'https://fedoraproject.org/wiki/Packaging:Python#Multiple_Python_Runtimes'
 
 FORBIDDEN_SHEBANGS = ['#!/usr/bin/python', '#!/usr/bin/env python']
+WARNING = 'WARNING: mangling shebang in'
 
 
 def matches(line, query):
@@ -69,29 +81,64 @@ def get_scripts_summary(package):
     return scripts_summary
 
 
-def task_unversioned_shebangs(packages, koji_build, artifact):
-    """Check if some of the binaries contains '/usr/bin/python'
-    shebang or '/usr/bin/env python' shebang.
+def check_packages(packages):
+    """Check if the packages have executables with shebangs
+    forbidden by the guidelines.
+
+    Return: (str) problem packages along with file names
+    """
+    problem_rpms = {}
+    for package in packages:
+        log.debug('Checking shebangs of {}'.format(package.filename))
+        problem_rpms[package.nvr] = get_scripts_summary(package)
+
+    shebang_message = ''
+    for package, pkg_summary in problem_rpms.items():
+        for shebang, scripts in pkg_summary.items():
+            shebang_message += \
+                '{}\n * Scripts containing `{}` shebang:\n   {}'.format(
+                    package, shebang, '\n   '.join(sorted(scripts)))
+    return shebang_message
+
+
+def check_logs(logs):
+    """Check the build log for the warning message
+    that the shebangs were automatically mangled.
+
+    Return: (str) architectures where warning was found
+    """
+    problem_arches = set()
+    for buildlog in logs:
+        if file_contains(buildlog, WARNING):
+            log.debug('{} contains our warning'.format(buildlog))
+            _, _, arch = buildlog.rpartition('.')
+            problem_arches.add(arch)
+    return ', '.join(sorted(problem_arches))
+
+
+def task_unversioned_shebangs(packages, logs, koji_build, artifact):
+    """Check if some of the binaries contain '/usr/bin/python'
+    shebang or '/usr/bin/env python' shebang or whether those
+    shebangs were mangled during the build.
     """
     # libtaskotron is not available on Python 3, so we do it inside
     # to make the above functions testable anyway
     from libtaskotron import check
 
     outcome = 'PASSED'
+    message = ''
+    problems = ''
 
-    problem_rpms = {}
-    shebang_message = ''
+    problems = check_packages(packages)
+    if problems:
+        outcome = 'FAILED'
+        message = MESSAGE.format(problems)
 
-    for package in packages:
-        log.debug('Checking shebangs of {}'.format(package.filename))
-        problem_rpms[package.nvr] = get_scripts_summary(package)
-
-    for package, pkg_summary in problem_rpms.items():
-        for shebang, scripts in pkg_summary.items():
-            outcome = 'FAILED'
-            shebang_message += \
-                '{}\n * Scripts containing `{}` shebang:\n   {}'.format(
-                    package, shebang, '\n   '.join(sorted(scripts)))
+    mangled_on_arches = check_logs(logs)
+    if mangled_on_arches:
+        outcome = 'FAILED'
+        message = MANGLED_MESSAGE.format(mangled_on_arches)
+        problems = 'Shebangs mangled on: {}'.format(mangled_on_arches)
 
     detail = check.CheckDetail(
         checkname='unversioned_shebangs',
@@ -101,11 +148,11 @@ def task_unversioned_shebangs(packages, koji_build, artifact):
 
     if outcome == 'FAILED':
         detail.artifact = artifact
-        write_to_artifact(artifact, MESSAGE.format(shebang_message), INFO_URL)
+        write_to_artifact(artifact, message, INFO_URL)
     else:
-        shebang_message = 'No problems found.'
+        problems = 'No problems found.'
 
     log.info('subcheck unversioned_shebangs {} for {}. {}'.format(
-        outcome, koji_build, shebang_message))
+        outcome, koji_build, problems))
 
     return detail
