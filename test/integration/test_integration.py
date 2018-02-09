@@ -159,7 +159,7 @@ docutils = fixtures_factory('_docutils')
 _nodejs = fixtures_factory('nodejs-semver-5.1.1-2.fc26')
 nodejs = fixtures_factory('_nodejs')
 
-_bucky = fixtures_factory('python-bucky-2.2.2-7.fc27')
+_bucky = fixtures_factory('python-bucky-2.2.2-9.fc28')
 bucky = fixtures_factory('_bucky')
 
 _jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-1.fc28')
@@ -220,13 +220,14 @@ def test_artifact_contains_two_three_and_looks_as_expected(tracer):
     ''').strip().format(result.item) in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'epub', 'twine', 'vdirsyncer'))
+@pytest.mark.parametrize('results', ('eric', 'epub', 'twine', 'vdirsyncer',
+                                     'bucky'))
 def test_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.naming_scheme'].outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('copr', 'six', 'admesh', 'bucky'))
+@pytest.mark.parametrize('results', ('copr', 'six', 'admesh'))
 def test_naming_scheme_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.naming_scheme'].outcome == 'FAILED'
@@ -367,6 +368,34 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
         This is discouraged and should be avoided. Please check the shebangs
         and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
    """).strip() in artifact.strip()
+
+
+@pytest.mark.parametrize('results', ('bucky',))
+def test_unvesioned_shebangs_mangled_failed(results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.unversioned_shebangs']
+    assert result.outcome == 'FAILED'
+
+
+def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
+        bucky):
+    result = bucky['dist.python-versions.unversioned_shebangs']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert dedent("""
+        The package uses either `#!/usr/bin/python` or
+        `#!/usr/bin/env python` shebangs. They are forbidden by the guidelines
+        and have been automatically mangled during build on the following
+        arches:
+
+            noarch
+
+        Please check the shebangs and use either `#!/usr/bin/python2` or
+        `#!/usr/bin/python3` explicitly.
+    """).strip() in artifact.strip()
 
 
 @pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
