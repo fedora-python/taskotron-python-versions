@@ -51,6 +51,8 @@ INFO_URL = ('https://python-rpm-porting.readthedocs.io/en/'
 
 MESSAGE = 'These RPMs require both Python 2 and Python 3:\n{}'
 
+# Whitelist package names here with reasons
+# Note that those are binary package names, not srpm names
 WHITELIST = (
     'eric',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342492
     'pungi',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342497
