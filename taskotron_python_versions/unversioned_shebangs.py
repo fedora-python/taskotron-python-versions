@@ -8,22 +8,29 @@ This is discouraged and should be avoided. Please check the shebangs
 and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
 """
 
+WARNING = 'WARNING: mangling shebang in'
+
 MANGLED_MESSAGE = """The package uses either `#!/usr/bin/python` or
 `#!/usr/bin/env python` shebangs. They are forbidden by the guidelines
 and have been automatically mangled during build on the following
 arches:
 
-    {}
+    {{}}
 
 Please check the shebangs and use either `#!/usr/bin/python2` or
 `#!/usr/bin/python3` explicitly.
-"""
+
+Look for the following warning in the build.log to find out which
+files are affected and need to be fixed:
+
+    {} <file name> from <wrong shebang>
+    to <correct shebang>. This will become an ERROR, fix it manually!
+""".format(WARNING)
 
 INFO_URL = \
     'https://fedoraproject.org/wiki/Packaging:Python#Multiple_Python_Runtimes'
 
 FORBIDDEN_SHEBANGS = ['#!/usr/bin/python', '#!/usr/bin/env python']
-WARNING = 'WARNING: mangling shebang in'
 
 
 def matches(line, query):

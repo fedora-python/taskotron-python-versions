@@ -395,6 +395,12 @@ def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
 
         Please check the shebangs and use either `#!/usr/bin/python2` or
         `#!/usr/bin/python3` explicitly.
+
+        Look for the following warning in the build.log to find out which
+        files are affected and need to be fixed:
+
+            WARNING: mangling shebang in <file name> from <wrong shebang>
+            to <correct shebang>. This will become an ERROR, fix it manually!
     """).strip() in artifact.strip()
 
 
