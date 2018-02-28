@@ -1,17 +1,22 @@
 from .common import log, write_to_artifact, file_contains
 
 
+WARNING = 'DEPRECATION WARNING: python2 invoked with /usr/bin/python'
+
 MESSAGE = """You've used /usr/bin/python during build on the following arches:
 
-  {}
+  {{}}
 
 Use /usr/bin/python3 or /usr/bin/python2 explicitly.
 /usr/bin/python will be removed or switched to Python 3 in the future.
-"""
+
+Grep the build.log for the following to find out where:
+
+    {}
+""".format(WARNING)
 
 INFO_URL = ('https://fedoraproject.org/wiki/Changes/'
             'Avoid_usr_bin_python_in_RPM_Build')
-WARNING = 'DEPRECATION WARNING: python2 invoked with /usr/bin/python'
 
 
 def task_python_usage(logs, koji_build, artifact):

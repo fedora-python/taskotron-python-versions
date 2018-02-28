@@ -466,4 +466,8 @@ def test_artifact_contains_python_usage_and_looks_as_expected(jsonrpc):
 
         Use /usr/bin/python3 or /usr/bin/python2 explicitly.
         /usr/bin/python will be removed or switched to Python 3 in the future.
+
+        Grep the build.log for the following to find out where:
+
+            DEPRECATION WARNING: python2 invoked with /usr/bin/python
     """).strip() in artifact.strip()
