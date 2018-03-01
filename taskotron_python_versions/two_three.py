@@ -42,6 +42,7 @@ NAME_NOTS = (
     b'python-btchip-common',
     b'python-matplotlib-data',
     b'python-matplotlib-data-fonts',
+    b'python-cartopy-common',
 )
 
 
