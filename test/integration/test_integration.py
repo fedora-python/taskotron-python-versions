@@ -365,6 +365,7 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
         tracer-0.6.9-1.fc23
          * Scripts containing `#!/usr/bin/python` shebang:
            /usr/bin/tracer
+
         This is discouraged and should be avoided. Please check the shebangs
         and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
    """).strip() in artifact.strip()

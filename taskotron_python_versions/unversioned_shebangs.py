@@ -103,7 +103,7 @@ def check_packages(packages):
     for package, pkg_summary in problem_rpms.items():
         for shebang, scripts in pkg_summary.items():
             shebang_message += \
-                '{}\n * Scripts containing `{}` shebang:\n   {}'.format(
+                '{}\n * Scripts containing `{}` shebang:\n   {}\n'.format(
                     package, shebang, '\n   '.join(sorted(scripts)))
     return shebang_message
 
