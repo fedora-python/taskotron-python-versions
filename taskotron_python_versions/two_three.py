@@ -59,6 +59,7 @@ WHITELIST = (
     'eric',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342492
     'pungi',  # https://bugzilla.redhat.com/show_bug.cgi?id=1342497
     'python2-devel',  # deliberately depends on python3-rpm-generators
+    'postgresql-upgrade',  # https://bugzilla.redhat.com/show_bug.cgi?id=1571215
 )
 
 
