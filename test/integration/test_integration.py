@@ -180,10 +180,12 @@ _jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-1.fc28')
 jsonrpc = fixtures_factory('_jsonrpc')
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine', 'yum',
-                                     'vdirsyncer', 'docutils', 'nodejs',
-                                     'bucky', 'jsonrpc'))
+def parametrize(*fixtrues):
+    return pytest.mark.parametrize('results', fixtrues)
+
+
+@parametrize('eric', 'six', 'admesh', 'tracer', 'copr', 'epub', 'twine', 'yum',
+             'vdirsyncer', 'docutils', 'nodejs', 'bucky', 'jsonrpc')
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -193,21 +195,19 @@ def test_number_of_results(results, request):
     assert len(results) == 8
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh',
-                                     'copr', 'epub', 'twine',
-                                     'bucky'))
+@parametrize('eric', 'six', 'admesh', 'copr', 'epub', 'twine', 'bucky')
 def test_two_three_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.two_three'].outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('tracer',))
+@parametrize('tracer')
 def test_two_three_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.two_three'].outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('tracer', 'copr', 'admesh'))
+@parametrize('tracer', 'copr', 'admesh')
 def test_one_failed_result_is_total_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions'].outcome == 'FAILED'
@@ -223,7 +223,7 @@ def test_artifact_is_the_same(results, task, request):
             results['dist.python-versions.' + task].artifact)
 
 
-@pytest.mark.parametrize('results', ('tracer',))
+@parametrize('tracer')
 def test_artifact_contains_two_three_and_looks_as_expected(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.two_three']
@@ -238,20 +238,19 @@ def test_artifact_contains_two_three_and_looks_as_expected(results, request):
     ''').strip().format(result.item) in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'epub', 'twine', 'vdirsyncer',
-                                     'bucky'))
+@parametrize('eric', 'epub', 'twine', 'vdirsyncer', 'bucky')
 def test_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.naming_scheme'].outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('copr', 'six', 'admesh'))
+@parametrize('copr', 'six', 'admesh')
 def test_naming_scheme_failed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.naming_scheme'].outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('copr',))
+@parametrize('copr')
 def test_artifact_contains_naming_scheme_and_looks_as_expected(results,
                                                                request):
     results = request.getfixturevalue(results)
@@ -265,21 +264,21 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(results,
     """).strip().format(result.item) in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'twine', 'six'))
+@parametrize('eric', 'twine', 'six')
 def test_requires_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.requires_naming_scheme']
     assert task_result.outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('admesh', 'copr'))
+@parametrize('admesh', 'copr')
 def test_requires_naming_scheme_failed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.requires_naming_scheme']
     assert task_result.outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('tracer',))
+@parametrize('tracer')
 def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
@@ -304,7 +303,7 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('yum',))
+@parametrize('yum')
 def test_requires_naming_scheme_contains_python(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.requires_naming_scheme']
@@ -316,22 +315,22 @@ def test_requires_naming_scheme_contains_python(results, request):
     assert 'python (python2 is available)' in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine', 'bucky'))
+@parametrize('eric', 'six', 'admesh', 'tracer',
+             'copr', 'epub', 'twine', 'bucky')
 def test_executables_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.executables']
     assert task_result.outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('docutils',))
+@parametrize('docutils')
 def test_executables_failed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.executables']
     assert task_result.outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('docutils',))
+@parametrize('docutils')
 def test_artifact_contains_executables_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
@@ -364,22 +363,21 @@ def test_artifact_contains_executables_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'copr',
-                                     'epub', 'twine', 'nodejs'))
+@parametrize('eric', 'six', 'admesh', 'copr', 'epub', 'twine', 'nodejs')
 def test_unvesioned_shebangs_passed(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
     assert result.outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('yum', 'tracer', 'bucky'))
+@parametrize('yum', 'tracer', 'bucky')
 def test_unvesioned_shebangs_failed(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
     assert result.outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('tracer',))
+@parametrize('tracer')
 def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
@@ -400,14 +398,14 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
    """).strip() in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('bucky',))
+@parametrize('bucky')
 def test_unvesioned_shebangs_mangled_failed(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
     assert result.outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('bucky',))
+@parametrize('bucky')
 def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
@@ -436,22 +434,22 @@ def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine', 'docutils'))
+@parametrize('eric', 'six', 'admesh', 'tracer',
+             'copr', 'epub', 'twine', 'docutils')
 def test_py3_support_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.py3_support']
     assert task_result.outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('bucky',))
+@parametrize('bucky')
 def test_py3_support_failed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.py3_support']
     assert task_result.outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('bucky',))
+@parametrize('bucky')
 def test_artifact_contains_py3_support_and_looks_as_expected(
         results, request):
     """Test that py3_support check fails if the package is mispackaged.
@@ -477,22 +475,22 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
-@pytest.mark.parametrize('results', ('eric', 'six', 'admesh', 'tracer',
-                                     'copr', 'epub', 'twine', 'docutils'))
+@parametrize('eric', 'six', 'admesh', 'tracer',
+             'copr', 'epub', 'twine', 'docutils')
 def test_python_usage_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.python_usage']
     assert task_result.outcome == 'PASSED'
 
 
-@pytest.mark.parametrize('results', ('jsonrpc',))
+@parametrize('jsonrpc')
 def test_python_usage_failed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.python_usage']
     assert task_result.outcome == 'FAILED'
 
 
-@pytest.mark.parametrize('results', ('jsonrpc',))
+@parametrize('jsonrpc')
 def test_artifact_contains_python_usage_and_looks_as_expected(results,
                                                               request):
     results = request.getfixturevalue(results)
