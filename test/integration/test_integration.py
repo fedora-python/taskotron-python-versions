@@ -1,6 +1,7 @@
 from collections import namedtuple
 import contextlib
 import glob
+import os
 import pprint
 import shutil
 import subprocess
@@ -16,14 +17,27 @@ Result = namedtuple('Result', ['outcome', 'artifact', 'item'])
 
 
 class MockEnv:
-    '''Use this to work with mock. Mutliple instances are not safe.'''
+    '''Use this to work with mock. Mutliple concurrent instances are safe.'''
     mock = ['mock', '-r', './mock.cfg']
 
-    def __init__(self):
+    def __init__(self, worker_id):
+        self.worker_id = worker_id
         self._run(['--init'], check=True)
 
+    @property
+    def root(self):
+        return 'taskotron-python-versions-{}'.format(self.worker_id)
+
+    @property
+    def rootdir(self):
+        return os.path.join(os.path.abspath('.'), 'mockroots', self.root)
+
     def _run(self, what, **kwargs):
-        return subprocess.run(self.mock + what, **kwargs)
+        command = list(self.mock)  # needs a copy not to change in place
+        command.append('--config-opts=root={}'.format(self.root))
+        command.append('--rootdir={}'.format(self.rootdir))
+        command.extend(what)
+        return subprocess.run(command, **kwargs)
 
     def copy_in(self, files):
         self._run(['--copyin'] + files + ['/'], check=True)
@@ -52,12 +66,12 @@ class FakeMockEnv(MockEnv):
 
 
 @pytest.fixture(scope="session")
-def mock(request):
+def mock(worker_id, request):
     '''Setup a mock we can run Ansible tasks in under root'''
     if request.config.getoption('--fake'):
-        mockenv = FakeMockEnv()
+        mockenv = FakeMockEnv(worker_id)
     else:
-        mockenv = MockEnv()
+        mockenv = MockEnv(worker_id)
     files = ['taskotron_python_versions'] + glob.glob('*.py') + ['tests.yml']
     mockenv.copy_in(files)
     yield mockenv
@@ -187,8 +201,10 @@ def test_two_three_passed(results, request):
     assert results['dist.python-versions.two_three'].outcome == 'PASSED'
 
 
-def test_two_three_failed(tracer):
-    assert tracer['dist.python-versions.two_three'].outcome == 'FAILED'
+@pytest.mark.parametrize('results', ('tracer',))
+def test_two_three_failed(results, request):
+    results = request.getfixturevalue(results)
+    assert results['dist.python-versions.two_three'].outcome == 'FAILED'
 
 
 @pytest.mark.parametrize('results', ('tracer', 'copr', 'admesh'))
@@ -207,8 +223,10 @@ def test_artifact_is_the_same(results, task, request):
             results['dist.python-versions.' + task].artifact)
 
 
-def test_artifact_contains_two_three_and_looks_as_expected(tracer):
-    result = tracer['dist.python-versions.two_three']
+@pytest.mark.parametrize('results', ('tracer',))
+def test_artifact_contains_two_three_and_looks_as_expected(results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.two_three']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -233,8 +251,11 @@ def test_naming_scheme_failed(results, request):
     assert results['dist.python-versions.naming_scheme'].outcome == 'FAILED'
 
 
-def test_artifact_contains_naming_scheme_and_looks_as_expected(copr):
-    result = copr['dist.python-versions.naming_scheme']
+@pytest.mark.parametrize('results', ('copr',))
+def test_artifact_contains_naming_scheme_and_looks_as_expected(results,
+                                                               request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.naming_scheme']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -258,9 +279,11 @@ def test_requires_naming_scheme_failed(results, request):
     assert task_result.outcome == 'FAILED'
 
 
+@pytest.mark.parametrize('results', ('tracer',))
 def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
-        tracer):
-    result = tracer['dist.python-versions.requires_naming_scheme']
+        results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.requires_naming_scheme']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -281,8 +304,10 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
-def test_requires_naming_scheme_contains_python(yum):
-    result = yum['dist.python-versions.requires_naming_scheme']
+@pytest.mark.parametrize('results', ('yum',))
+def test_requires_naming_scheme_contains_python(results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.requires_naming_scheme']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -306,9 +331,11 @@ def test_executables_failed(results, request):
     assert task_result.outcome == 'FAILED'
 
 
+@pytest.mark.parametrize('results', ('docutils',))
 def test_artifact_contains_executables_and_looks_as_expected(
-        docutils):
-    result = docutils['dist.python-versions.executables']
+        results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.executables']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -352,9 +379,11 @@ def test_unvesioned_shebangs_failed(results, request):
     assert result.outcome == 'FAILED'
 
 
+@pytest.mark.parametrize('results', ('tracer',))
 def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
-        tracer):
-    result = tracer['dist.python-versions.unversioned_shebangs']
+        results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.unversioned_shebangs']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -378,9 +407,11 @@ def test_unvesioned_shebangs_mangled_failed(results, request):
     assert result.outcome == 'FAILED'
 
 
+@pytest.mark.parametrize('results', ('bucky',))
 def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
-        bucky):
-    result = bucky['dist.python-versions.unversioned_shebangs']
+        results, request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.unversioned_shebangs']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -420,15 +451,17 @@ def test_py3_support_failed(results, request):
     assert task_result.outcome == 'FAILED'
 
 
+@pytest.mark.parametrize('results', ('bucky',))
 def test_artifact_contains_py3_support_and_looks_as_expected(
-        bucky):
+        results, request):
     """Test that py3_support check fails if the package is mispackaged.
 
     NOTE: The test will start to fail as soon as python-bucky
     gets ported to Python 3 and its Bugzilla gets closed.
     See https://bugzilla.redhat.com/show_bug.cgi?id=1367012
     """
-    result = bucky['dist.python-versions.py3_support']
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.py3_support']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -459,8 +492,11 @@ def test_python_usage_failed(results, request):
     assert task_result.outcome == 'FAILED'
 
 
-def test_artifact_contains_python_usage_and_looks_as_expected(jsonrpc):
-    result = jsonrpc['dist.python-versions.python_usage']
+@pytest.mark.parametrize('results', ('jsonrpc',))
+def test_artifact_contains_python_usage_and_looks_as_expected(results,
+                                                              request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.python_usage']
     with open(result.artifact) as f:
         artifact = f.read()
 
