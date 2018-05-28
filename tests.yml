@@ -51,25 +51,25 @@
       debug:
         var: workdir.path
 
-    - name: Compute architectures to download
+    - name: Compute architectures to test
       set_fact:
-        download_arches: "{{ taskotron_supported_arches | join(',') }}"
+        test_arches: "{{ taskotron_supported_arches }} + ['noarch', 'src']"
 
-    - name: Print architectures to download
+    - name: Print architectures to test
       debug:
-        var: download_arches
+        var: test_arches
 
     - block:
         - name: Download RPMs from Koji
           shell: >
             python2 download_rpms.py {{ taskotron_item }} {{ workdir.path }}
-            {{ download_arches }}
+            {{ test_arches | join(',') }}
             &> {{ artifacts }}/test.log
 
         - name: Run task
           shell: >
             python2 python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
-            {{ artifacts }} {{ testcase }}
+            {{ artifacts }} {{ testcase }} {{ test_arches | join(',') }}
             &>> {{ artifacts }}/test.log
       always:
         - name: Print results location

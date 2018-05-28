@@ -11,3 +11,4 @@ __pycache__
 .cache
 *.egg-info
 tests.retry
+/.pytest_cache/

@@ -28,7 +28,7 @@ from taskotron_python_versions.common import log, Package, PackageException
 
 
 def run(koji_build, workdir='.', artifactsdir='artifacts',
-        testcase='dist.python-versions'):
+        testcase='dist.python-versions', arches=['x86_64', 'noarch', 'src']):
     '''The main method to run from Taskotron'''
     workdir = os.path.abspath(workdir)
     results_path = os.path.join(artifactsdir, 'taskotron', 'results.yml')
@@ -75,10 +75,11 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
         srpm_packages + packages, koji_build, artifact))
     details.append(task_python_usage(logs, koji_build, artifact))
 
-    # update testcase for all subtasks (use their existing testcase as a
-    # suffix)
     for detail in details:
+        # update testcase for all subtasks (use their existing testcase as a
+        # suffix)
         detail.checkname = '{}.{}'.format(testcase, detail.checkname)
+        detail.keyvals['arch'] = arches
 
     # finally, the main detail with overall results
     outcome = 'PASSED'
@@ -89,12 +90,14 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
     overall_detail = check.CheckDetail(checkname=testcase,
                                        item=koji_build,
                                        report_type=check.ReportType.KOJI_BUILD,
-                                       outcome=outcome)
+                                       outcome=outcome,
+                                       keyvals={'arch': arches})
     if outcome == 'FAILED':
         overall_detail.artifact = artifact
     details.append(overall_detail)
 
-    summary = 'python-versions {} for {}.'.format(outcome, koji_build)
+    summary = 'python-versions {} for {} ({}).'.format(
+        outcome, koji_build, ', '.join(arches))
     log.info(summary)
 
     # generate output reportable to ResultsDB
@@ -106,8 +109,10 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
 
 
 if __name__ == '__main__':
+    arches = sys.argv[5].split(',')
     rc = run(koji_build=sys.argv[1],
              workdir=sys.argv[2],
              artifactsdir=sys.argv[3],
-             testcase=sys.argv[4])
+             testcase=sys.argv[4],
+             arches=arches)
     sys.exit(rc)
