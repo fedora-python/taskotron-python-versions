@@ -173,8 +173,8 @@ docutils = fixtures_factory('_docutils')
 _nodejs = fixtures_factory('nodejs-semver-5.1.1-2.fc26')
 nodejs = fixtures_factory('_nodejs')
 
-_bucky = fixtures_factory('python-bucky-2.2.2-9.fc28')
-bucky = fixtures_factory('_bucky')
+_pycallgraph = fixtures_factory('python-pycallgraph-0.5.1-13.fc28')
+pycallgraph = fixtures_factory('_pycallgraph')
 
 _jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-1.fc28')
 jsonrpc = fixtures_factory('_jsonrpc')
@@ -185,7 +185,7 @@ def parametrize(*fixtrues):
 
 
 @parametrize('eric', 'six', 'admesh', 'tracer', 'copr', 'epub', 'twine', 'yum',
-             'vdirsyncer', 'docutils', 'nodejs', 'bucky', 'jsonrpc')
+             'vdirsyncer', 'docutils', 'nodejs', 'pycallgraph', 'jsonrpc')
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -195,7 +195,7 @@ def test_number_of_results(results, request):
     assert len(results) == 8
 
 
-@parametrize('eric', 'six', 'admesh', 'copr', 'epub', 'twine', 'bucky')
+@parametrize('eric', 'six', 'admesh', 'copr', 'epub', 'twine', 'pycallgraph')
 def test_two_three_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.two_three'].outcome == 'PASSED'
@@ -238,7 +238,7 @@ def test_artifact_contains_two_three_and_looks_as_expected(results, request):
     ''').strip().format(result.item) in artifact.strip()
 
 
-@parametrize('eric', 'epub', 'twine', 'vdirsyncer', 'bucky')
+@parametrize('eric', 'epub', 'twine', 'vdirsyncer', 'pycallgraph')
 def test_naming_scheme_passed(results, request):
     results = request.getfixturevalue(results)
     assert results['dist.python-versions.naming_scheme'].outcome == 'PASSED'
@@ -316,7 +316,7 @@ def test_requires_naming_scheme_contains_python(results, request):
 
 
 @parametrize('eric', 'six', 'admesh', 'tracer',
-             'copr', 'epub', 'twine', 'bucky')
+             'copr', 'epub', 'twine', 'pycallgraph')
 def test_executables_passed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.executables']
@@ -370,7 +370,7 @@ def test_unvesioned_shebangs_passed(results, request):
     assert result.outcome == 'PASSED'
 
 
-@parametrize('yum', 'tracer', 'bucky')
+@parametrize('yum', 'tracer', 'pycallgraph')
 def test_unvesioned_shebangs_failed(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
@@ -398,14 +398,14 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
    """).strip() in artifact.strip()
 
 
-@parametrize('bucky')
+@parametrize('pycallgraph')
 def test_unvesioned_shebangs_mangled_failed(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
     assert result.outcome == 'FAILED'
 
 
-@parametrize('bucky')
+@parametrize('pycallgraph')
 def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
@@ -442,21 +442,21 @@ def test_py3_support_passed(results, request):
     assert task_result.outcome == 'PASSED'
 
 
-@parametrize('bucky')
+@parametrize('pycallgraph')
 def test_py3_support_failed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.py3_support']
     assert task_result.outcome == 'FAILED'
 
 
-@parametrize('bucky')
+@parametrize('pycallgraph')
 def test_artifact_contains_py3_support_and_looks_as_expected(
         results, request):
     """Test that py3_support check fails if the package is mispackaged.
 
-    NOTE: The test will start to fail as soon as python-bucky
+    NOTE: The test will start to fail as soon as python-pycallgraph
     gets ported to Python 3 and its Bugzilla gets closed.
-    See https://bugzilla.redhat.com/show_bug.cgi?id=1367012
+    See https://bugzilla.redhat.com/show_bug.cgi?id=1309383
     """
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.py3_support']
@@ -471,7 +471,7 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
 
         Software MUST be packaged for Python 3 if upstream supports it.
         See the following Bugzilla:
-        https://bugzilla.redhat.com/show_bug.cgi?id=1367012
+        https://bugzilla.redhat.com/show_bug.cgi?id=1309383
     """).strip() in artifact.strip()
 
 
