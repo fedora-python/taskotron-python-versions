@@ -44,6 +44,7 @@ NAME_NOTS = (
     b'python-matplotlib-data-fonts',
     b'python-cartopy-common',
     b'python-django-bash-completion',
+    b'python-jupyter-filesystem',
 )
 
 
