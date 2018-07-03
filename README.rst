@@ -17,9 +17,9 @@ Currently the following checks are available:
 
 -  Whether the package uses versioned shebangs in its executables;
 
--  Whether the package supports Python 3 upstream but not in the package.
+-  Whether the package supports Python 3 upstream but not in the package;
 
--  Whether ``/usr/bin/python`` was invoked during the build.
+-  Whether the package requires ``/usr/bin/python`` (or ``python-unversioned-command``).
 
 
 Running

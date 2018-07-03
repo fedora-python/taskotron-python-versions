@@ -1,26 +1,26 @@
-from .common import log, write_to_artifact, file_contains
+from .common import log, write_to_artifact
 
 
-WARNING = 'DEPRECATION WARNING: python2 invoked with /usr/bin/python'
+MESSAGE = """The following packages (Build)Require `/usr/bin/python`
+(or `python-unversioned-command`):
 
-MESSAGE = """You've used /usr/bin/python during build on the following arches:
-
-  {{}}
+  * {}
 
 Use /usr/bin/python3 or /usr/bin/python2 explicitly.
 /usr/bin/python will be removed or switched to Python 3 in the future.
-
-Grep the build.log for the following to find out where:
-
-    {}
-""".format(WARNING)
+"""
 
 INFO_URL = ('https://fedoraproject.org/wiki/Changes/'
-            'Avoid_usr_bin_python_in_RPM_Build')
+            'Move_usr_bin_python_into_separate_package')
+
+PYTHON_COMMAND = (
+    '/usr/bin/python',
+    'python-unversioned-command',
+)
 
 
-def task_python_usage(logs, koji_build, artifact):
-    """Parses the build.logs for /usr/bin/python invocation warning
+def task_python_usage(packages, koji_build, artifact):
+    """Check if the packages depend on /usr/bin/python.
     """
     # libtaskotron is not available on Python 3, so we do it inside
     # to make the above functions testable anyway
@@ -28,16 +28,19 @@ def task_python_usage(logs, koji_build, artifact):
 
     outcome = 'PASSED'
 
-    problem_arches = set()
+    problem_rpms = set()
 
-    for buildlog in logs:  # not "log" because we use that name for logging
-        log.debug('Will parse {}'.format(buildlog))
+    for package in packages:
+        log.debug('Checking {}'.format(package.filename))
 
-        if file_contains(buildlog, WARNING):
-            log.debug('{} contains our warning'.format(buildlog))
-            _, _, arch = buildlog.rpartition('.')
-            problem_arches.add(arch)
-            outcome = 'FAILED'
+        for name in package.require_names:
+            name = name.decode()
+
+            if name in PYTHON_COMMAND:
+                log.error(
+                    '{} requires {}'.format(package.filename, name))
+                problem_rpms.add(package.filename)
+                outcome = 'FAILED'
 
     detail = check.CheckDetail(
         checkname='python_usage',
@@ -45,11 +48,12 @@ def task_python_usage(logs, koji_build, artifact):
         report_type=check.ReportType.KOJI_BUILD,
         outcome=outcome)
 
-    if problem_arches:
+    if problem_rpms:
         detail.artifact = artifact
-        info = '{}: {}'.format(koji_build, ', '.join(sorted(problem_arches)))
-        write_to_artifact(artifact, MESSAGE.format(info), INFO_URL)
-        problems = 'Problematic architectures: ' + info
+        write_to_artifact(
+            artifact, MESSAGE.format('\n  * '.join(problem_rpms)),
+            INFO_URL)
+        problems = 'Problematic RPMs:\n' + ', '.join(problem_rpms)
     else:
         problems = 'No problems found.'
 

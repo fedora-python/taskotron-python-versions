@@ -176,8 +176,12 @@ nodejs = fixtures_factory('_nodejs')
 _pycallgraph = fixtures_factory('python-pycallgraph-0.5.1-13.fc28')
 pycallgraph = fixtures_factory('_pycallgraph')
 
+# TODO: remove with Fedora 28 EOL.
 _jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-1.fc28')
 jsonrpc = fixtures_factory('_jsonrpc')
+
+_teeworlds = fixtures_factory('teeworlds-0.6.4-8.fc29')
+teeworlds = fixtures_factory('_teeworlds')
 
 
 def parametrize(*fixtrues):
@@ -185,14 +189,14 @@ def parametrize(*fixtrues):
 
 
 @parametrize('eric', 'six', 'admesh', 'tracer', 'copr', 'epub', 'twine', 'yum',
-             'vdirsyncer', 'docutils', 'nodejs', 'pycallgraph', 'jsonrpc')
+             'vdirsyncer', 'docutils', 'nodejs', 'pycallgraph', 'teeworlds')
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
     results = request.getfixturevalue(results)
 
     # Each time a new check is added, this number needs to be increased
-    assert len(results) == 8
+    assert len(results) == 9
 
 
 @parametrize('eric', 'six', 'admesh', 'copr', 'epub', 'twine', 'pycallgraph')
@@ -475,26 +479,29 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
     """).strip() in artifact.strip()
 
 
+# TODO: remove with Fedora 28 EOL.
 @parametrize('eric', 'six', 'admesh', 'tracer',
              'copr', 'epub', 'twine', 'docutils')
-def test_python_usage_passed(results, request):
+def test_python_usage_obsoleted_passed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['dist.python-versions.python_usage']
+    task_result = results['dist.python-versions.python_usage_obsoleted']
     assert task_result.outcome == 'PASSED'
 
 
+# TODO: remove with Fedora 28 EOL.
 @parametrize('jsonrpc')
-def test_python_usage_failed(results, request):
+def test_python_usage_obsoleted_failed(results, request):
     results = request.getfixturevalue(results)
-    task_result = results['dist.python-versions.python_usage']
+    task_result = results['dist.python-versions.python_usage_obsoleted']
     assert task_result.outcome == 'FAILED'
 
 
+# TODO: remove with Fedora 28 EOL.
 @parametrize('jsonrpc')
-def test_artifact_contains_python_usage_and_looks_as_expected(results,
+def test_artifact_of_python_usage_obsoleted_looks_as_expected(results,
                                                               request):
     results = request.getfixturevalue(results)
-    result = results['dist.python-versions.python_usage']
+    result = results['dist.python-versions.python_usage_obsoleted']
     with open(result.artifact) as f:
         artifact = f.read()
 
@@ -511,4 +518,40 @@ def test_artifact_contains_python_usage_and_looks_as_expected(results,
         Grep the build.log for the following to find out where:
 
             DEPRECATION WARNING: python2 invoked with /usr/bin/python
+    """).strip() in artifact.strip()
+
+
+@parametrize('eric', 'six', 'admesh',
+             'copr', 'epub', 'twine', 'docutils')
+def test_python_usage_passed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['dist.python-versions.python_usage']
+    assert task_result.outcome == 'PASSED'
+
+
+@parametrize('tracer', 'yum', 'teeworlds')
+def test_python_usage_failed(results, request):
+    results = request.getfixturevalue(results)
+    task_result = results['dist.python-versions.python_usage']
+    assert task_result.outcome == 'FAILED'
+
+
+@parametrize('teeworlds')
+def test_artifact_contains_python_usage_and_looks_as_expected(results,
+                                                              request):
+    results = request.getfixturevalue(results)
+    result = results['dist.python-versions.python_usage']
+    with open(result.artifact) as f:
+        artifact = f.read()
+
+    print(artifact)
+
+    assert dedent("""
+        The following packages (Build)Require `/usr/bin/python`
+        (or `python-unversioned-command`):
+
+          * teeworlds-0.6.4-8.fc29.src.rpm
+
+        Use /usr/bin/python3 or /usr/bin/python2 explicitly.
+        /usr/bin/python will be removed or switched to Python 3 in the future.
     """).strip() in artifact.strip()
