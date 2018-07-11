@@ -177,7 +177,7 @@ _pycallgraph = fixtures_factory('python-pycallgraph-0.5.1-13.fc28')
 pycallgraph = fixtures_factory('_pycallgraph')
 
 # TODO: remove with Fedora 28 EOL.
-_jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-1.fc28')
+_jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-2.fc28')
 jsonrpc = fixtures_factory('_jsonrpc')
 
 _teeworlds = fixtures_factory('teeworlds-0.6.4-8.fc29')
@@ -510,7 +510,7 @@ def test_artifact_of_python_usage_obsoleted_looks_as_expected(results,
     assert dedent("""
         You've used /usr/bin/python during build on the following arches:
 
-          jsonrpc-glib-3.27.4-1.fc28: x86_64
+          jsonrpc-glib-3.27.4-2.fc28: x86_64
 
         Use /usr/bin/python3 or /usr/bin/python2 explicitly.
         /usr/bin/python will be removed or switched to Python 3 in the future.
