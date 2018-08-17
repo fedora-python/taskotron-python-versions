@@ -3,7 +3,15 @@ sudo: required
 services:
   - docker
 
+env:
+  - FEDORA=27
+  - FEDORA=28
+  - FEDORA=29
+  - FEDORA=rawhide
+
 install:
+  - sed -i "s/fedora-28-x86_64/fedora-${FEDORA}-x86_64/" mock.cfg
+  - sed -i "s|FROM fedora|FROM registry.fedoraproject.org/fedora:${FEDORA}|" Dockerfile
   - docker build -t taskotron .
 
 script:
