@@ -45,6 +45,9 @@ NAME_NOTS = (
     b'python-cartopy-common',
     b'python-django-bash-completion',
     b'python-jupyter-filesystem',
+    b'python-pip-wheel',
+    b'python-setuptools-wheel',
+    b'python-wheel-wheel',
 )
 
 
