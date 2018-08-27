@@ -36,10 +36,10 @@ class DNFQuery(object):
         """Return the result of the DNF query execution,
         filtered by kwargs.
         """
-        try:
+        if self.query is not None:
             return self.query.filter(**kwargs).run()
-        except AttributeError as ae:
-            log.debug(repr(ae))
+        else:
+            log.debug('No query, we continue, but it is bad...')
             return []
 
     @staticmethod
@@ -69,6 +69,7 @@ class DNFQuery(object):
         except dnf.exceptions.RepoError as err:
             if self.release == 'rawhide':
                 log.error('{} (rawhide)'.format(err))
+                # TODO Do not silently ignore the error
                 return
             log.warning('Failed to load repos for {}, '
                         'assuming rawhide'.format(self.release))
