@@ -3,6 +3,7 @@ from collections import namedtuple
 import pytest
 
 from taskotron_python_versions.requires import (
+    DNFQuery,
     get_versioned_name,
     check_requires_naming_scheme,
 )
@@ -86,3 +87,11 @@ def test_package_requires_are_misnamed(pkgglob, repoquery, expected):
     # Make sure all items from repoquery.data were popped out.
     assert not repoquery.data, (
         'Repoquery was not called for: {}'.format(repoquery.data))
+
+
+@pytest.mark.slow
+def test_repoquery():
+    repoquery = DNFQuery('25')
+    packages = repoquery.get_packages_by(provides='python-setuptools')
+    first = packages[0]
+    assert first.name == 'python2-setuptools'

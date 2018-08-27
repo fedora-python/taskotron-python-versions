@@ -34,6 +34,7 @@ class MockEnv:
 
     def _run(self, what, **kwargs):
         command = list(self.mock)  # needs a copy not to change in place
+        command.append('--enable-network')
         command.append('--config-opts=root={}'.format(self.root))
         command.append('--rootdir={}'.format(self.rootdir))
         command.extend(what)
