@@ -38,25 +38,18 @@ class DNFQuery(object):
         """
         try:
             return self.query.filter(**kwargs).run()
-        except AttributeError:
+        except AttributeError as ae:
+            log.debug(repr(ae))
             return []
 
     @staticmethod
     def add_repo(base, reponame, repourl):
-        try:
-            # Fedora 26
-            repo = dnf.repo.Repo(reponame, parent_conf=base.conf)
-        except TypeError:
-            # Fedora 25
-            repo = dnf.repo.Repo(reponame, cachedir=base.conf.cachedir)
-
         metalink = ('https://mirrors.fedoraproject.org/'
                     'metalink?repo={}&arch=$basearch'.format(repourl))
-        repo.metalink = dnf.conf.parser.substitute(metalink,
-                                                   base.conf.substitutions)
-
-        base.repos.add(repo)
-        repo.skip_if_unavailable = False
+        repo = base.repos.add_new_repo(reponame,
+                                       base.conf,
+                                       metalink=metalink,
+                                       skip_if_unavailable=False)
         repo.enable()
         repo.load()
         return repo
