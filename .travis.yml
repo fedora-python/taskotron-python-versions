@@ -12,6 +12,7 @@ env:
 
 install:
   - sed -i "s/fedora-28-x86_64/fedora-${FEDORA}-x86_64/" mock.cfg
+  - sed -i "s/\$releasever/${FEDORA}/" mock.cfg  # needed on rawhide
   - sed -i "s|FROM fedora|FROM registry.fedoraproject.org/fedora:${FEDORA}|" Dockerfile
   - docker build -t taskotron .
 
