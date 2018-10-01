@@ -34,8 +34,6 @@ def task_python_usage(packages, koji_build, artifact):
         log.debug('Checking {}'.format(package.filename))
 
         for name in package.require_names:
-            name = name.decode()
-
             if name in PYTHON_COMMAND:
                 log.error(
                     '{} requires {}'.format(package.filename, name))

@@ -42,7 +42,7 @@ def get_problematic_files(archive, query):
     """Search for the files inside archive with the first line
     matching given query. Some of the files can contain data, which
     are not in the plain text format. Bytes are read from the file and
-    the shebang query has to be of the same type.
+    the shebang query is encoded as well. We only test for ASCII shebangs.
     """
     problematic = set()
     with libarchive.file_reader(archive) as a:
@@ -51,21 +51,15 @@ def get_problematic_files(archive, query):
                 first_line = next(entry.get_blocks(), '').splitlines()[0]
             except IndexError:
                 continue  # file is empty
-            if matches(first_line, query.encode()):
+            if matches(first_line, query.encode('ascii')):
                 problematic.add(entry.pathname.lstrip('.'))
 
     return problematic
 
 
-def shebang_to_require(shebang, use_bytes=True):
-    """Convert shebang to the format of requirement.
-    If the use_bytes argument is set to False, executable path
-    is returned as a string instead of the default bytes type."""
-    executable_path = shebang.split()[0][2:]
-    if use_bytes:
-        return executable_path.encode()
-    else:
-        return executable_path
+def shebang_to_require(shebang):
+    """Convert shebang to the format of requirement."""
+    return shebang.split()[0][2:]
 
 
 def get_scripts_summary(package):
@@ -79,7 +73,7 @@ def get_scripts_summary(package):
         if shebang_to_require(shebang) in package.require_names:
             log.debug('Package {} requires {}'.format(
                 package.filename, shebang_to_require(
-                    shebang, use_bytes=False)))
+                    shebang)))
             problematic = get_problematic_files(package.path, shebang)
             if problematic:
                 log.debug('{} shebang was found in scripts: {}'.format(

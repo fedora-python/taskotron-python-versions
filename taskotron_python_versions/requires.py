@@ -107,8 +107,6 @@ def check_requires_naming_scheme(package, repoquery):
     misnamed_requires = set()
 
     for name in package.require_names:
-        name = name.decode()
-
         if is_unversioned(name):
             versioned = get_versioned_name(name, repoquery)
 

@@ -108,11 +108,11 @@ class Package(object):
 
     @property
     def require_names(self):
-        return self.hdr[rpm.RPMTAG_REQUIRENAME]
+        return [r.decode() for r in self.hdr[rpm.RPMTAG_REQUIRENAME]]
 
     @property
     def require_nevrs(self):
-        return self.hdr[rpm.RPMTAG_REQUIRENEVRS]
+        return [r.decode() for r in self.hdr[rpm.RPMTAG_REQUIRENEVRS]]
 
     @property
     def files(self):

@@ -2,52 +2,52 @@ from .common import log, write_to_artifact
 
 
 NEVRS_STARTS = {
-    2: (b'python(abi) = 2.',),
-    3: (b'python(abi) = 3.',)
+    2: ('python(abi) = 2.',),
+    3: ('python(abi) = 3.',)
 }
 
 NAME_STARTS = {
     2: (
-        b'python-',
-        b'python2',
-        b'/usr/bin/python2',
-        b'libpython2',
-        b'pygtk2',
-        b'pygobject2',
-        b'pycairo',
-        b'py-',
+        'python-',
+        'python2',
+        '/usr/bin/python2',
+        'libpython2',
+        'pygtk2',
+        'pygobject2',
+        'pycairo',
+        'py-',
     ),
     3: (
-        b'python3',
-        b'/usr/bin/python3',
-        b'libpython3',
-        b'system-python'
+        'python3',
+        '/usr/bin/python3',
+        'libpython3',
+        'system-python'
     )
 }
 
 NAME_EXACTS = {
     2: (
-        b'/usr/bin/python',
-        b'python',
+        '/usr/bin/python',
+        'python',
     )
 }
 
 NAME_NOTS = (
-    b'python-rpm-macros',
-    b'python-srpm-macros',
-    b'python-sphinx-locale',
-    b'python-multilib-conf',
-    b'python-ldb-devel-common',
-    b'python-qt5-rpm-macros',
-    b'python-btchip-common',
-    b'python-matplotlib-data',
-    b'python-matplotlib-data-fonts',
-    b'python-cartopy-common',
-    b'python-django-bash-completion',
-    b'python-jupyter-filesystem',
-    b'python-pip-wheel',
-    b'python-setuptools-wheel',
-    b'python-wheel-wheel',
+    'python-rpm-macros',
+    'python-srpm-macros',
+    'python-sphinx-locale',
+    'python-multilib-conf',
+    'python-ldb-devel-common',
+    'python-qt5-rpm-macros',
+    'python-btchip-common',
+    'python-matplotlib-data',
+    'python-matplotlib-data-fonts',
+    'python-cartopy-common',
+    'python-django-bash-completion',
+    'python-jupyter-filesystem',
+    'python-pip-wheel',
+    'python-setuptools-wheel',
+    'python-wheel-wheel',
 )
 
 
@@ -80,7 +80,7 @@ def check_two_three(package):
     for nevr in package.require_nevrs:
         for py_version, starts in NEVRS_STARTS.items():
             if nevr.startswith(starts):
-                log.debug('Found dependency {}'.format(nevr.decode()))
+                log.debug('Found dependency {}'.format(nevr))
                 log.debug('Requires Python {}'.format(py_version))
                 py_versions[py_version] = nevr
 
@@ -88,14 +88,14 @@ def check_two_three(package):
         for py_version, starts in NAME_STARTS.items():
             if py_version not in py_versions:
                 if name.startswith(starts) and name not in NAME_NOTS:
-                    log.debug('Found dependency {}'.format(name.decode()))
+                    log.debug('Found dependency {}'.format(name))
                     log.debug('Requires Python {}'.format(py_version))
                     py_versions[py_version] = name
 
         for py_version, exacts in NAME_EXACTS.items():
             if py_version not in py_versions:
                 if name in exacts:
-                    log.debug('Found dependency {}'.format(name.decode()))
+                    log.debug('Found dependency {}'.format(name))
                     log.debug('Requires Python {}'.format(py_version))
                     py_versions[py_version] = name
 
