@@ -61,14 +61,10 @@ def file_contains(path, needle):
         # let's optimize prematurely because practicality beats purity
 
         # Memory-mapped file object behaving like bytearray
-        mmf = mmap.mmap(f.fileno(),
-                        length=0,  # = determine automatically
-                        access=mmap.ACCESS_READ)
-        try:
+        with mmap.mmap(f.fileno(),
+                       length=0,  # = determine automatically
+                       access=mmap.ACCESS_READ) as mmf:
             return mmf.find(needle) != -1
-        finally:
-            # mmap context manager is Python 3 only
-            mmf.close()
 
 
 class PackageException(Exception):

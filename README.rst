@@ -50,7 +50,7 @@ Tests
 
 This task is covered with functional and integration tests.
 You can run them using `tox <https://tox.readthedocs.io/>`__, but
-you will need ``mock``, ``python{2,3}-rpm`` and ``python{2,3}-dnf`` installed.
+you will need ``mock``, ``python3-rpm`` and ``python3-dnf`` installed.
 For mock configuration see
 `mock setup <https://github.com/rpm-software-management/mock/wiki#setup>`__
 instructions. Use the following command to run the test suite::

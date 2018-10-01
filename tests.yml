@@ -16,10 +16,10 @@
         name: "{{ item }}"
         state: latest
       with_items:
-        - rpm-python
-        - python2-dnf
-        - python2-libarchive-c
-        - python-bugzilla
+        - python3-rpm
+        - python3-dnf
+        - python3-libarchive-c
+        - python3-bugzilla
         - libtaskotron-core
         - libtaskotron-fedora
       register: dnf_output
@@ -66,13 +66,13 @@
     - block:
         - name: Download RPMs from Koji
           shell: >
-            python2 download_rpms.py {{ taskotron_item }} {{ workdir.path }}
+            python3 download_rpms.py {{ taskotron_item }} {{ workdir.path }}
             {{ test_arches | join(',') }}
             &> {{ artifacts }}/test.log
 
         - name: Run task
           shell: >
-            python2 python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
+            python3 python_versions_check.py {{ taskotron_item }} {{ workdir.path }}
             {{ artifacts }} {{ testcase }} {{ test_arches | join(',') }}
             &>> {{ artifacts }}/test.log
       always:
