@@ -13,15 +13,13 @@
   tasks:
     - name: Install required packages
       dnf:
-        name: "{{ item }}"
+        name:
+          - python3-rpm
+          - python3-dnf
+          - python3-libarchive-c
+          - python3-bugzilla
+          - python3-libtaskotron
         state: latest
-      with_items:
-        - python3-rpm
-        - python3-dnf
-        - python3-libarchive-c
-        - python3-bugzilla
-        - python3-libtaskotron
-        - taskotron-runner
       register: dnf_output
       # retry for network failures
       retries: 3
