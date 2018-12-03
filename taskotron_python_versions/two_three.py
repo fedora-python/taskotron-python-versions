@@ -48,6 +48,7 @@ NAME_NOTS = (
     'python-pip-wheel',
     'python-setuptools-wheel',
     'python-wheel-wheel',
+    'python-formencode-langpacks',
 )
 
 
