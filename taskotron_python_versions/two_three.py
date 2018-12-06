@@ -49,6 +49,7 @@ NAME_NOTS = (
     'python-setuptools-wheel',
     'python-wheel-wheel',
     'python-formencode-langpacks',
+    'python-typeshed',
 )
 
 
