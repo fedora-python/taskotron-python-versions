@@ -50,6 +50,7 @@ NAME_NOTS = (
     'python-wheel-wheel',
     'python-formencode-langpacks',
     'python-typeshed',
+    'texlive-python',
 )
 
 
