@@ -51,6 +51,7 @@ NAME_NOTS = (
     'python-formencode-langpacks',
     'python-typeshed',
     'texlive-python',
+    'python-jupyter-filesystem',
 )
 
 
