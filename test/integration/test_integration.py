@@ -178,6 +178,9 @@ nodejs = fixtures_factory('_nodejs')
 _pycallgraph = fixtures_factory('python-pycallgraph-0.5.1-13.fc28')
 pycallgraph = fixtures_factory('_pycallgraph')
 
+_ttystatus = fixtures_factory('python-ttystatus-0.34-7.fc29')
+ttystatus = fixtures_factory('_ttystatus')
+
 # TODO: remove with Fedora 28 EOL.
 _jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-2.fc28')
 jsonrpc = fixtures_factory('_jsonrpc')
@@ -191,7 +194,8 @@ def parametrize(*fixtrues):
 
 
 @parametrize('eric', 'six', 'admesh', 'tracer', 'copr', 'epub', 'twine', 'yum',
-             'vdirsyncer', 'docutils', 'nodejs', 'pycallgraph', 'teeworlds')
+             'vdirsyncer', 'docutils', 'nodejs', 'pycallgraph', 'teeworlds',
+             'ttystatus')
 def test_number_of_results(results, request):
     # getting a fixture by name
     # https://github.com/pytest-dev/pytest/issues/349#issuecomment-112203541
@@ -441,21 +445,21 @@ def test_py3_support_passed(results, request):
     assert task_result.outcome == 'PASSED'
 
 
-@parametrize('pycallgraph')
+@parametrize('ttystatus')
 def test_py3_support_failed(results, request):
     results = request.getfixturevalue(results)
     task_result = results['dist.python-versions.py3_support']
     assert task_result.outcome == 'FAILED'
 
 
-@parametrize('pycallgraph')
+@parametrize('ttystatus')
 def test_artifact_contains_py3_support_and_looks_as_expected(
         results, request):
     """Test that py3_support check fails if the package is mispackaged.
 
-    NOTE: The test will start to fail as soon as python-pycallgraph
+    NOTE: The test will start to fail as soon as python-ttystatus
     gets ported to Python 3 and its Bugzilla gets closed.
-    See https://bugzilla.redhat.com/show_bug.cgi?id=1309383
+    See https://bugzilla.redhat.com/show_bug.cgi?id=1458531
     """
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.py3_support']
@@ -469,7 +473,7 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
 
         Software MUST be packaged for Python 3 if upstream supports it.
         See the following Bugzilla:
-        https://bugzilla.redhat.com/show_bug.cgi?id=1309383
+        https://bugzilla.redhat.com/show_bug.cgi?id=1458531
     """).strip() in artifact.strip()
 
 
