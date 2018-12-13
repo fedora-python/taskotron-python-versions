@@ -1,13 +1,16 @@
 language: generic
-sudo: required
 
 services:
   - docker
 
 env:
-  - FEDORA=28
-  - FEDORA=29
-  - FEDORA=rawhide
+  - FEDORA=28 TOXENV=integration
+  - FEDORA=28 TOXENV=py3
+  - FEDORA=29 TOXENV=integration
+  - FEDORA=29 TOXENV=py3
+  - FEDORA=29 TOXENV=style
+  - FEDORA=rawhide TOXENV=integration
+  - FEDORA=rawhide TOXENV=py3
 
 install:
   - sed -i "s/fedora-28-x86_64/fedora-${FEDORA}-x86_64/" mock.cfg
@@ -16,4 +19,4 @@ install:
   - docker build -t taskotron .
 
 script:
-  - docker run --cap-add=SYS_ADMIN -v $(pwd):$(pwd) -w $(pwd) -i -t taskotron
+  - docker run --cap-add=SYS_ADMIN -v $(pwd):$(pwd) -w $(pwd) -i -e "TOXENV=$TOXENV" -t taskotron
