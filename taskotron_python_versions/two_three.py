@@ -145,7 +145,6 @@ def task_two_three(packages, koji_build, artifact):
                                outcome=outcome)
 
     if bads:
-        detail.artifact = artifact
         rpms = ''
         for name, py_versions in bads.items():
             rpms += ('{}\n'
@@ -154,6 +153,7 @@ def task_two_three(packages, koji_build, artifact):
                                                            py_versions[2],
                                                            py_versions[3]))
         write_to_artifact(artifact, MESSAGE.format(rpms), INFO_URL)
+        detail.artifact = str(artifact)
         names = ', '.join(str(k) for k in bads.keys())
         problems = 'Problematic RPMs:\n' + names
     else:

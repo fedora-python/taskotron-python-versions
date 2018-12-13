@@ -1,7 +1,7 @@
 from collections import namedtuple
 import contextlib
 import glob
-import os
+import pathlib
 import pprint
 import shutil
 import subprocess
@@ -30,7 +30,7 @@ class MockEnv:
 
     @property
     def rootdir(self):
-        return os.path.join(os.path.abspath('.'), 'mockroots', self.root)
+        return pathlib.Path('./mockroots').resolve() / self.root
 
     def _run(self, what, **kwargs):
         command = list(self.mock)  # needs a copy not to change in place
@@ -110,7 +110,8 @@ def run_task(nevr, *, mock):
     def fix_artifact_path(path):
         if path is None:
             return None
-        return path.replace('/artifacts/', '/{}/'.format(artifacts))
+        newpath = path.replace('artifacts/', '{}/'.format(artifacts))
+        return pathlib.Path(newpath)
 
     return {r['checkname']: Result(r.get('outcome'),
                                    fix_artifact_path(r.get('artifact')),
@@ -232,8 +233,7 @@ def test_artifact_is_the_same(results, task, request):
 def test_artifact_contains_two_three_and_looks_as_expected(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.two_three']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     assert dedent('''
         These RPMs require both Python 2 and Python 3:
@@ -260,8 +260,7 @@ def test_artifact_contains_naming_scheme_and_looks_as_expected(results,
                                                                request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.naming_scheme']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     assert dedent("""
         These RPMs' names violate the new Python package naming guidelines:
@@ -288,8 +287,7 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.requires_naming_scheme']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -312,8 +310,7 @@ def test_artifact_contains_requires_naming_scheme_and_looks_as_expected(
 def test_requires_naming_scheme_contains_python(results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.requires_naming_scheme']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -340,8 +337,7 @@ def test_artifact_contains_executables_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.executables']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -387,8 +383,7 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -415,8 +410,7 @@ def test_artifact_contains_mangled_unversioned_shebangs_and_looks_as_expected(
         results, request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.unversioned_shebangs']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -465,8 +459,7 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
     """
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.py3_support']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -503,8 +496,7 @@ def test_artifact_of_python_usage_obsoleted_looks_as_expected(results,
                                                               request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.python_usage_obsoleted']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 
@@ -542,8 +534,7 @@ def test_artifact_contains_python_usage_and_looks_as_expected(results,
                                                               request):
     results = request.getfixturevalue(results)
     result = results['dist.python-versions.python_usage']
-    with open(result.artifact) as f:
-        artifact = f.read()
+    artifact = result.artifact.read_text()
 
     print(artifact)
 

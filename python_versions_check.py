@@ -8,6 +8,7 @@ if __name__ == '__main__':
     logging.basicConfig()
 
 import os
+import pathlib
 import sys
 
 from libtaskotron import check
@@ -31,9 +32,14 @@ from taskotron_python_versions.common import log, Package, PackageException
 def run(koji_build, workdir='.', artifactsdir='artifacts',
         testcase='dist.python-versions', arches=['x86_64', 'noarch', 'src']):
     '''The main method to run from Taskotron'''
-    workdir = os.path.abspath(workdir)
-    results_path = os.path.join(artifactsdir, 'taskotron', 'results.yml')
-    artifact = os.path.join(artifactsdir, 'output.log')
+    artifactsdir = pathlib.Path(artifactsdir)
+    workdir = pathlib.Path(workdir).resolve()
+    resultsdir = artifactsdir / 'taskotron'
+    resultspath = resultsdir / 'results.yml'
+    artifact = artifactsdir / 'output.log'
+
+    artifactsdir.mkdir(parents=True, exist_ok=True)
+    resultsdir.mkdir(parents=True, exist_ok=True)
 
     # find files to run on
     files = sorted(os.listdir(workdir))
@@ -41,7 +47,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
     packages = []
     srpm_packages = []
     for file_ in files:
-        path = os.path.join(workdir, file_)
+        path = workdir / file_
         if file_.endswith('.rpm'):
             try:
                 package = Package(path)
@@ -97,7 +103,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
                                        outcome=outcome,
                                        keyvals={'arch': arches})
     if outcome == 'FAILED':
-        overall_detail.artifact = artifact
+        overall_detail.artifact = str(artifact)
     details.append(overall_detail)
 
     summary = 'python-versions {} for {} ({}).'.format(
@@ -106,8 +112,7 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
 
     # generate output reportable to ResultsDB
     output = check.export_YAML(details)
-    with open(results_path, 'w') as results_file:
-        results_file.write(output)
+    resultspath.write_text(output)
 
     return 0 if overall_detail.outcome in ['PASSED', 'INFO'] else 1
 

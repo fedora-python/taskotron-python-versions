@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
+import pathlib
 from setuptools import setup, find_packages
 
 
 description = """Taskotron checks regarding Python versions"""
-
-with open('README.rst') as readme:
-    long_description = readme.read()
+long_description = pathlib.Path('README.rst').read_text()
 
 setup(
     name='taskotron-python-versions',

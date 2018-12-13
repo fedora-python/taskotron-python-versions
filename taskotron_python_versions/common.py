@@ -42,6 +42,8 @@ def packages_by_version(packages):
     """
     pkg_by_version = collections.defaultdict(list)
     for package in packages:
+        if package.py_versions is None:  # SRPMS
+            continue
         for version in package.py_versions:
             pkg_by_version[version].append(package)
     return pkg_by_version

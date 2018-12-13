@@ -47,10 +47,10 @@ def task_python_usage(packages, koji_build, artifact):
         outcome=outcome)
 
     if problem_rpms:
-        detail.artifact = artifact
         write_to_artifact(
             artifact, MESSAGE.format('\n  * '.join(problem_rpms)),
             INFO_URL)
+        detail.artifact = str(artifact)
         problems = 'Problematic RPMs:\n' + ', '.join(problem_rpms)
     else:
         problems = 'No problems found.'

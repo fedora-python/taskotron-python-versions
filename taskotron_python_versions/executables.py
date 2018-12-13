@@ -96,8 +96,8 @@ def task_executables(packages, koji_build, artifact):
         outcome=outcome)
 
     if message:
-        detail.artifact = artifact
         write_to_artifact(artifact, MESSAGE.format(message), INFO_URL)
+        detail.artifact = str(artifact)
 
     log.info('subcheck executables {} for {}'.format(
         outcome, koji_build))

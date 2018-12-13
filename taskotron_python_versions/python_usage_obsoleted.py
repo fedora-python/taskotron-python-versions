@@ -40,7 +40,7 @@ def task_python_usage_obsoleted(logs, koji_build, artifact):
 
         if file_contains(buildlog, WARNING):
             log.debug('{} contains our warning'.format(buildlog))
-            _, _, arch = buildlog.rpartition('.')
+            arch = buildlog.suffix.lstrip('.')
             problem_arches.add(arch)
             outcome = 'FAILED'
 
@@ -51,9 +51,9 @@ def task_python_usage_obsoleted(logs, koji_build, artifact):
         outcome=outcome)
 
     if problem_arches:
-        detail.artifact = artifact
         info = '{}: {}'.format(koji_build, ', '.join(sorted(problem_arches)))
         write_to_artifact(artifact, MESSAGE.format(info), INFO_URL)
+        detail.artifact = str(artifact)
         problems = 'Problematic architectures: ' + info
     else:
         problems = 'No problems found.'

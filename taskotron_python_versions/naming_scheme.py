@@ -97,9 +97,9 @@ def task_naming_scheme(packages, koji_build, artifact):
         outcome=outcome)
 
     if incorrect_names:
-        detail.artifact = artifact
         names = ', '.join(incorrect_names)
         write_to_artifact(artifact, MESSAGE.format(names), INFO_URL)
+        detail.artifact = str(artifact)
         problems = 'Problematic RPMs:\n' + names
     else:
         problems = 'No problems found.'

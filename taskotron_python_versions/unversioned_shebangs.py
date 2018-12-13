@@ -45,7 +45,7 @@ def get_problematic_files(archive, query):
     the shebang query is encoded as well. We only test for ASCII shebangs.
     """
     problematic = set()
-    with libarchive.file_reader(archive) as a:
+    with libarchive.file_reader(str(archive)) as a:
         for entry in a:
             try:
                 first_line = next(entry.get_blocks(), '').splitlines()[0]
@@ -112,7 +112,7 @@ def check_logs(logs):
     for buildlog in logs:
         if file_contains(buildlog, WARNING):
             log.debug('{} contains our warning'.format(buildlog))
-            _, _, arch = buildlog.rpartition('.')
+            arch = buildlog.suffix.lstrip('.')
             problem_arches.add(arch)
     return ', '.join(sorted(problem_arches))
 
@@ -148,8 +148,8 @@ def task_unversioned_shebangs(packages, logs, koji_build, artifact):
         outcome=outcome)
 
     if outcome == 'FAILED':
-        detail.artifact = artifact
         write_to_artifact(artifact, message, INFO_URL)
+        detail.artifact = str(artifact)
     else:
         problems = 'No problems found.'
 
