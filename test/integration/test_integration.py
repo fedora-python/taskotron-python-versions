@@ -3,6 +3,7 @@ import contextlib
 import glob
 import pathlib
 import pprint
+import shlex
 import shutil
 import subprocess
 import sys
@@ -32,12 +33,17 @@ class MockEnv:
     def rootdir(self):
         return pathlib.Path('./mockroots').resolve() / self.root
 
+    @staticmethod
+    def cmd_repr(cmd):
+        return '\n$ ' + ' '.join(shlex.quote(p) for p in cmd)
+
     def _run(self, what, **kwargs):
         command = list(self.mock)  # needs a copy not to change in place
         command.append('--enable-network')
         command.append('--config-opts=root={}'.format(self.root))
         command.append('--rootdir={}'.format(self.rootdir))
         command.extend(what)
+        print(MockEnv.cmd_repr(command), file=sys.stderr)
         return subprocess.run(command, **kwargs)
 
     def copy_in(self, files):
@@ -83,8 +89,15 @@ def parse_results(path):
     '''
     From the given result file, parse the results
     '''
-    with open(path) as f:
-        return yaml.load(f)['results']
+    try:
+        with open(path) as f:
+            return yaml.load(f)['results']
+    except FileNotFoundError:
+        # results.yml not present: task errored
+        log = pathlib.Path(path).parent.parent / 'test.log'
+        print('\n\nTaskotron failed with:\n', file=sys.stderr)
+        print(log.read_text(), file=sys.stderr)
+        raise
 
 
 def run_task(nevr, *, mock):
