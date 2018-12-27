@@ -14,7 +14,7 @@ the required packages, and use names with either `python2-` or
 INFO_URL = 'https://fedoraproject.org/wiki/Packaging:Python#Dependencies'
 
 
-class DNFQuery(object):
+class DNFQuery:
 
     """DNF Qeuery API.
 

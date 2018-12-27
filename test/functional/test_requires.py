@@ -14,7 +14,7 @@ from .common import gpkg
 Package = namedtuple('Package', 'name')
 
 
-class QueryStub(object):
+class QueryStub:
 
     """Stub object for dnf repoquery."""
 

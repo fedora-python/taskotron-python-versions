@@ -74,7 +74,7 @@ class PackageException(Exception):
     """Base Exception class for Package API."""
 
 
-class Package(object):
+class Package:
 
     """RPM Package API."""
 
