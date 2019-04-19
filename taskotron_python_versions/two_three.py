@@ -52,6 +52,7 @@ NAME_NOTS = (
     'python-typeshed',
     'texlive-python',
     'python-jupyter-filesystem',
+    'python-imgcreate-sysdeps',
 )
 
 
