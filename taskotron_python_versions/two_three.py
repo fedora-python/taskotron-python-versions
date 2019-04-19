@@ -53,6 +53,7 @@ NAME_NOTS = (
     'texlive-python',
     'python-jupyter-filesystem',
     'python-imgcreate-sysdeps',
+    'dbus-python-devel',
 )
 
 
