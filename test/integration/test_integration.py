@@ -191,10 +191,6 @@ nodejs = fixtures_factory('_nodejs')
 _pycallgraph = fixtures_factory('python-pycallgraph-0.5.1-13.fc28')
 pycallgraph = fixtures_factory('_pycallgraph')
 
-# TODO: remove with Fedora 28 EOL.
-_jsonrpc = fixtures_factory('jsonrpc-glib-3.27.4-2.fc28')
-jsonrpc = fixtures_factory('_jsonrpc')
-
 _teeworlds = fixtures_factory('teeworlds-0.6.4-8.fc29')
 teeworlds = fixtures_factory('_teeworlds')
 
@@ -211,7 +207,7 @@ def test_number_of_results(results, request):
     results = request.getfixturevalue(results)
 
     # Each time a new check is added, this number needs to be increased
-    assert len(results) == 9
+    assert len(results) == 8
 
 
 @parametrize('eric', 'six', 'admesh', 'copr', 'epub', 'twine', 'pycallgraph')
@@ -484,47 +480,6 @@ def test_artifact_contains_py3_support_and_looks_as_expected(
         Software MUST be packaged for Python 3 if upstream supports it.
         See the following Bugzilla:
         https://bugzilla.redhat.com/show_bug.cgi?id=...
-    """).strip() in artifact.strip()
-
-
-# TODO: remove with Fedora 28 EOL.
-@parametrize('eric', 'six', 'admesh', 'tracer',
-             'copr', 'epub', 'twine', 'docutils')
-def test_python_usage_obsoleted_passed(results, request):
-    results = request.getfixturevalue(results)
-    task_result = results['dist.python-versions.python_usage_obsoleted']
-    assert task_result.outcome == 'PASSED'
-
-
-# TODO: remove with Fedora 28 EOL.
-@parametrize('jsonrpc')
-def test_python_usage_obsoleted_failed(results, request):
-    results = request.getfixturevalue(results)
-    task_result = results['dist.python-versions.python_usage_obsoleted']
-    assert task_result.outcome == 'FAILED'
-
-
-# TODO: remove with Fedora 28 EOL.
-@parametrize('jsonrpc')
-def test_artifact_of_python_usage_obsoleted_looks_as_expected(results,
-                                                              request):
-    results = request.getfixturevalue(results)
-    result = results['dist.python-versions.python_usage_obsoleted']
-    artifact = result.artifact.read_text()
-
-    print(artifact)
-
-    assert dedent("""
-        You've used /usr/bin/python during build on the following arches:
-
-          jsonrpc-glib-3.27.4-2.fc28: x86_64
-
-        Use /usr/bin/python3 or /usr/bin/python2 explicitly.
-        /usr/bin/python will be removed or switched to Python 3 in the future.
-
-        Grep the build.log for the following to find out where:
-
-            DEPRECATION WARNING: python2 invoked with /usr/bin/python
     """).strip() in artifact.strip()
 
 

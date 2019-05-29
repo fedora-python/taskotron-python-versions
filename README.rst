@@ -15,8 +15,6 @@ Currently the following checks are available:
 
 -  Whether only Python 2 version of the package contains the executables;
 
--  Whether the package uses versioned shebangs in its executables;
-
 -  Whether the package supports Python 3 upstream but not in the package;
 
 -  Whether the package requires ``/usr/bin/python`` (or ``python-unversioned-command``).

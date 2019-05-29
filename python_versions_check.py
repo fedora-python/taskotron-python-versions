@@ -24,7 +24,6 @@ from taskotron_python_versions import (
     task_unversioned_shebangs,
     task_py3_support,
     task_python_usage,
-    task_python_usage_obsoleted,
 )
 from taskotron_python_versions.common import log, Package, PackageException
 
@@ -82,8 +81,6 @@ def run(koji_build, workdir='.', artifactsdir='artifacts',
         srpm_packages + packages, koji_build, artifact))
     details.append(task_python_usage(
         srpm_packages + packages, koji_build, artifact))
-    details.append(task_python_usage_obsoleted(
-        logs, koji_build, artifact))  # TODO: remove with Fedora 28 EOL.
 
     for detail in details:
         # update testcase for all subtasks (use their existing testcase as a
