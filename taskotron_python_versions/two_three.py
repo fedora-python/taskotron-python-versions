@@ -54,6 +54,7 @@ NAME_NOTS = (
     'python-jupyter-filesystem',
     'python-imgcreate-sysdeps',
     'dbus-python-devel',
+    'python-basemap-data',
 )
 
 
