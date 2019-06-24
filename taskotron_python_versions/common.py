@@ -69,6 +69,17 @@ def file_contains(path, needle):
             return mmf.find(needle) != -1
 
 
+def surrogate(text):
+    """Returns unicode for a given RPM header.
+    This is a layer to support both RPM 4.14 and 4.15.
+    RPM 4.14 always returns bytes.
+    RPM 4.15 always returns unicode strings with surrogateescaped errors.
+    """
+    if isinstance(text, bytes):
+        return text.decode('utf-8', errors='surrogateescape')
+    return text
+
+
 class PackageException(Exception):
 
     """Base Exception class for Package API."""
@@ -101,22 +112,22 @@ class Package:
     @property
     def name(self):
         """Package name as a string."""
-        return self.hdr[rpm.RPMTAG_NAME].decode()
+        return surrogate(self.hdr[rpm.RPMTAG_NAME])
 
     @property
     def nvr(self):
         """Package name and version as a string."""
-        return self.hdr[rpm.RPMTAG_NVR].decode()
+        return surrogate(self.hdr[rpm.RPMTAG_NVR])
 
     @property
     def require_names(self):
-        return [r.decode() for r in self.hdr[rpm.RPMTAG_REQUIRENAME]]
+        return [surrogate(r) for r in self.hdr[rpm.RPMTAG_REQUIRENAME]]
 
     @property
     def require_nevrs(self):
-        return [r.decode() for r in self.hdr[rpm.RPMTAG_REQUIRENEVRS]]
+        return [surrogate(r) for r in self.hdr[rpm.RPMTAG_REQUIRENEVRS]]
 
     @property
     def files(self):
         """Package file names as a list of strings."""
-        return [name.decode() for name in self.hdr[rpm.RPMTAG_FILENAMES]]
+        return [surrogate(name) for name in self.hdr[rpm.RPMTAG_FILENAMES]]
