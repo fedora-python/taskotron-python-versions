@@ -35,6 +35,7 @@ NAME_EXACTS = {
 NAME_NOTS = (
     'python-rpm-macros',
     'python-srpm-macros',
+    'python-sphinx-doc',
     'python-sphinx-locale',
     'python-multilib-conf',
     'python-ldb-devel-common',
