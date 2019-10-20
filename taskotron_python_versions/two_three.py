@@ -57,6 +57,7 @@ NAME_NOTS = (
     'dbus-python-devel',
     'python-basemap-data',
     'python-guessit-doc',
+    'python-jupyter-client-doc',
 )
 
 
