@@ -56,6 +56,7 @@ NAME_NOTS = (
     'python-imgcreate-sysdeps',
     'dbus-python-devel',
     'python-basemap-data',
+    'python-guessit-doc',
 )
 
 
