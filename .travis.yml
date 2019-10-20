@@ -9,6 +9,8 @@ env:
   - FEDORA=30 TOXENV=integration
   - FEDORA=30 TOXENV=py3
   - FEDORA=30 TOXENV=style
+  - FEDORA=31 TOXENV=integration
+  - FEDORA=31 TOXENV=py3
   - FEDORA=rawhide TOXENV=integration
   - FEDORA=rawhide TOXENV=py3
 
