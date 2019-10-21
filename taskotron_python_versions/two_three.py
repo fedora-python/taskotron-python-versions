@@ -58,6 +58,11 @@ NAME_NOTS = (
     'python-basemap-data',
     'python-guessit-doc',
     'python-jupyter-client-doc',
+    'python-pymilter-common',
+    'python-pymilter-selinux',
+    'gcc-python-plugin-c-api',
+    'gcc-python-plugin-docs',
+    'python-pyside-devel',
 )
 
 
