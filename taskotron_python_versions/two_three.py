@@ -63,6 +63,7 @@ NAME_NOTS = (
     'gcc-python-plugin-c-api',
     'gcc-python-plugin-docs',
     'python-pyside-devel',
+    'collectd-python',
 )
 
 
