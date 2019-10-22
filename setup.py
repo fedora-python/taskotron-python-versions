@@ -9,7 +9,7 @@ long_description = pathlib.Path('README.rst').read_text()
 
 setup(
     name='taskotron-python-versions',
-    version='0.1.dev5',
+    version='0.1.dev6',
     description=description,
     long_description=long_description,
     keywords='taskotron fedora python rpm',
